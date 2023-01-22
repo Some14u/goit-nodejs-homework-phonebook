@@ -1,5 +1,5 @@
 const Joi = require("joi");
-const { ForwardedError } = require("../helpers/forwardedError");
+const ForwardedError = require("../helpers/forwardedError");
 
 const patterns = {
   phone: /^([+]?[\s0-9]+)?(\d{3}|[(]?[0-9]+[)])?([-]?[\s]?[0-9])+$/,
@@ -47,7 +47,7 @@ class Contact {
       presence: required ? "required" : "optional",
     });
     if (res.error) {
-      throw new ForwardedError(400, res.error.details[0].message);
+      throw new ForwardedError(400, res.error.details?.[0]?.message || "Validation error");
     }
     return res.value;
   }
