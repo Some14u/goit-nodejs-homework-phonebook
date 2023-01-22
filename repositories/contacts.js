@@ -1,5 +1,4 @@
 const fs = require("fs/promises");
-const { ForwardedError } = require("../helpers");
 const { Contact } = require("../models/contact");
 
 let contacts;
@@ -58,9 +57,8 @@ async function removeByIdx(idx) {
 /** Finds contact by provided field and it's value */
 function findIdxByField(name, value, comparator) {
   const res = Contact.validateParams({ [name]: value }, false);
-  value = res[name];
   const idx = contacts.findIndex(
-    comparator ? comparator() : (c) => c[name] === value
+    (c) => comparator?.(c[name], res[name]) ?? c[name] === res[name]
   );
   return idx;
 }

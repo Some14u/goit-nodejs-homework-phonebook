@@ -43,6 +43,13 @@ function wrapMethodWithHandler(method) {
   };
 }
 
+function testNamesEquality(a, b) {
+  const wordsA = a.toLocaleLowerCase().split(" ");
+  const wordsB = b.toLocaleLowerCase().split(" ");
+  return wordsA.filter((x) => !wordsB.includes(x)).length === 0;
+}
+
 module.exports = {
   wrapWithHandlers,
+  testNamesEquality,
 };

@@ -1,8 +1,10 @@
 const Joi = require("joi");
-const { ForwardedError } = require("../helpers");
+const { ForwardedError } = require("../helpers/forwardedError");
 
-const PHONE_PATTERN =
-  /^([+]?[\s0-9]+)?(\d{3}|[(]?[0-9]+[)])?([-]?[\s]?[0-9])+$/;
+const patterns = {
+  phone: /^([+]?[\s0-9]+)?(\d{3}|[(]?[0-9]+[)])?([-]?[\s]?[0-9])+$/,
+  consecutiveSpaces: /\s+/g,
+};
 
 class Contact {
   id;
@@ -11,11 +13,23 @@ class Contact {
   phone;
 
   static validators = {
-    id: Joi.number().integer().positive().label("id"),
-    name: Joi.string().alphanum().label("name"),
-    email: Joi.string().email().label("email"),
-    phone: Joi.string()
-      .regex(PHONE_PATTERN, { name: "reqired" })
+    id: Joi.number() // id
+      .integer()
+      .positive()
+      .label("id"),
+    name: Joi.string() // name
+      .trim()
+      .replace(patterns.consecutiveSpaces, " ")
+      .alphanum()
+      .label("name"),
+    email: Joi.string() // email
+      .trim()
+      .email()
+      .label("email"),
+    phone: Joi.string() // phone
+      .trim()
+      .replace(patterns.consecutiveSpaces, " ")
+      .regex(patterns.phone, { name: "reqired" })
       .label("phone"),
   };
 
