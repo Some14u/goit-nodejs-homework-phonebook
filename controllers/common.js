@@ -22,16 +22,23 @@ function wrapWithHandlers(service) {
  * - query (e.g. ?a1=a11&b1=b11) - Always produces at least an empty object
  */
 function wrapMethodWithHandler(method) {
-  return (req, res) => {
-    let result;
+  /**
+   * @param {import("express").Request} req
+   * @param {import("express").Response} res
+   */
+  return async (req, res) => {
     try {
-      console.log(...Object.values(req.params))
-      result = method(...Object.values(req.params), req.body, req.query);
+      const result = await method(
+        ...Object.values(req.params),
+        req.body,
+        req.query
+      );
+      res.json(result);
     } catch (error) {
       // Any error will be caught and converted to json in the finally section
-      result = error;
-    } finally {
-      res.json(result);
+      console.log("ERROR", error);
+      if (error.statusCode) res.status(error.statusCode);
+      res.json({ message: error.message || error });
     }
   };
 }

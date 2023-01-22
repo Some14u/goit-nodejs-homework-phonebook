@@ -1,10 +1,25 @@
-const Joi = require('joi');
+const Joi = require("joi");
+const { ForwardedError } = require("../helpers");
+
+const PHONE_PATTERN =
+  /^([+]?[\s0-9]+)?(\d{3}|[(]?[0-9]+[)])?([-]?[\s]?[0-9])+$/;
 
 class Contact {
   id;
   name;
   email;
   phone;
+
+  static validators = {
+    id: Joi.number().integer().positive().label("id"),
+    name: Joi.string().alphanum().label("name"),
+    email: Joi.string().email().label("email"),
+    phone: Joi.string()
+      .regex(PHONE_PATTERN, { name: "reqired" })
+      .label("phone"),
+  };
+
+  static validationSchema = Joi.object(Contact.validators);
 
   constructor({ id, name, email, phone }) {
     this.id = id;
@@ -13,52 +28,16 @@ class Contact {
     this.phone = phone;
   }
 
-  static create(contact) {
-    return new Contact(contact);
+  static validateParams(raw, required = true) {
+    const res = Contact.validationSchema.validate(raw, {
+      presence: required ? "required" : "optional",
+    });
+    if (res.error) {
+      throw new ForwardedError(400, res.error.details[0].message);
+    }
+    return res.value;
   }
 }
-
-
-const schema = Joi.object({
-  id: Joi.number()
-    .integer()
-    .positive()
-
-    password: Joi.string()
-        .pattern(new RegExp('^[a-zA-Z0-9]{3,30}$')),
-
-    repeat_password: Joi.ref('password'),
-
-    access_token: [
-        Joi.string(),
-        Joi.number()
-    ],
-
-    birth_year: Joi.number()
-        .integer()
-        .min(1900)
-        .max(2013),
-
-    email: Joi.string()
-        .email({ minDomainSegments: 2, tlds: { allow: ['com', 'net'] } })
-})
-    .with('username', 'birth_year')
-    .xor('password', 'access_token')
-    .with('password', 'repeat_password');
-
-
-schema.validate({ username: 'abc', birth_year: 1994 });
-// -> { value: { username: 'abc', birth_year: 1994 } }
-
-schema.validate({});
-// -> { value: {}, error: '"username" is required' }
-
-// Also -
-
-try {
-    const value = await schema.validateAsync({ username: 'abc', birth_year: 1994 });
-}
-catch (err) { }
 
 module.exports = {
   Contact,

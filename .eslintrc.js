@@ -1,4 +1,6 @@
 module.exports = {
+  parser: "@babel/eslint-parser",
+
   env: {
     commonjs: true,
     es2021: true,
@@ -6,7 +8,8 @@ module.exports = {
   },
   extends: ['standard', 'prettier'],
   parserOptions: {
-    ecmaVersion: 13,
+    ecmaVersion: 12,
+    requireConfigFile: false,
   },
   rules: {},
 }

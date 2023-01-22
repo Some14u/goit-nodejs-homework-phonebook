@@ -1,21 +1,22 @@
 const fs = require("fs/promises");
-const path = require("path");
+const { ForwardedError } = require("../helpers");
 const { Contact } = require("../models/contact");
-const contactsPath = path.resolve("./", "models", "contacts.json");
 
 let contacts;
+let contactsPath;
 // eslint-disable-next-line prefer-const
 let autoSave = true;
 
 /** Converts raw string to array of contacts. The id key would be converted to Number */
 function parseRawData(data) {
   const reviver = (key, value) => (key === "id" ? Number(value) : value);
-  return JSON.parse(data, reviver).map(Contact.create);
+  return JSON.parse(data, reviver).map((contact) => new Contact(contact));
 }
 
 /** Loads contacts from file */
-async function load() {
-  const data = await fs.readFile(contactsPath, { encoding: "utf-8" });
+async function initDB(path) {
+  contactsPath = path;
+  const data = await fs.readFile(path, { encoding: "utf-8" });
   contacts = parseRawData(data);
 }
 
@@ -33,16 +34,20 @@ function getByIdx(idx) {
   return contacts[idx];
 }
 
-async function add({ name, email, phone }) {
-  const contact = new Contact(findNextEmptyId, name, email, phone);
+async function add(params) {
+  params.id = findNextEmptyId();
+  params = Contact.validateParams(params);
+  const contact = new Contact(params);
   contacts.push(contact);
   contacts.sort((a, b) => a.id - b.id);
   if (autoSave) await save();
+  return contact;
 }
 
 async function updateByIdx(idx, contact) {
-  contacts[idx] = { ...contacts[idx], ...contact };
+  contacts[idx] = Contact.create({ ...contacts[idx], ...contact });
   if (autoSave) await save();
+  return contacts[idx];
 }
 
 async function removeByIdx(idx) {
@@ -50,16 +55,13 @@ async function removeByIdx(idx) {
   if (autoSave) await save();
 }
 
-/** Converts id. Throws error if it isn't positive integer */
-/* function convertIdToInteger(id) {
-  if (!/^\d+$/.test(id)) throw text.idParseError(id);
-  return +id;
-} */
-
 /** Finds contact by provided field and it's value */
-function findIdxByField(fieldName, fieldValue) {
-  const idx = contacts.findIndex((c) => c[fieldName] === fieldValue);
-  // if (idx === -1) throw text.nothingFound(fieldName, fieldValue);
+function findIdxByField(name, value, comparator) {
+  const res = Contact.validateParams({ [name]: value }, false);
+  value = res[name];
+  const idx = contacts.findIndex(
+    comparator ? comparator() : (c) => c[name] === value
+  );
   return idx;
 }
 
@@ -73,23 +75,8 @@ function findNextEmptyId() {
   return id;
 }
 
-/** Package ouptut messages */
-/* const text = {
-  nothingFound: (name, value) =>
-    `There is no contact found with ${name}=${value}.`,
-  unableToRemove: (id) =>
-    `Unable to remove the contact with id=${id}. There is no such contact.`,
-  removeSuccess: (id) => `Contact with id=${id} was succesfully removed.`,
-  unableToAdd: (name) =>
-    `Unable to add a contact for person with the name "${name}". It is already in the list.`,
-  addSuccess: (id) => `A new contact with id=${id} was succesfully added.`,
-  idParseError: (id) =>
-    `The id parameter must be a positive integer. Provided value is "${id}".`,
-}; */
-
-load();
-
 module.exports = {
+  initDB,
   autoSave,
   save,
   getAll,
