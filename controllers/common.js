@@ -20,6 +20,9 @@ function wrapWithHandlers(service) {
  * - params (e.g. :id) - Spread used, so they will come as distinct parameters
  * - body (any object provided) - Always produces at least an empty object
  * - query (e.g. ?a1=a11&b1=b11) - Always produces at least an empty object
+ *
+ * Also, the result of the method will be checked for having the **statusCode**
+ * parameter, which might be used to control the returning status code from within.
  */
 function wrapMethodWithHandler(method) {
   /**
@@ -33,23 +36,21 @@ function wrapMethodWithHandler(method) {
         req.body,
         req.query
       );
+      // Kind of sketchy solution for statusCode forwarding, however it works
+      if (result?.statusCode) {
+        console.log("result.statuscode", result.statusCode);
+        res.status(result.statusCode);
+        delete result.statusCode;
+      }
       res.json(result);
     } catch (error) {
-      // Any error will be caught and converted to json in the finally section
-      console.log("ERROR", error);
+      // Any error will be caught and converted to json
       if (error.statusCode) res.status(error.statusCode);
       res.json({ message: error.message || error });
     }
   };
 }
 
-function testNamesEquality(a, b) {
-  const wordsA = a.toLocaleLowerCase().split(" ");
-  const wordsB = b.toLocaleLowerCase().split(" ");
-  return wordsA.filter((x) => !wordsB.includes(x)).length === 0;
-}
-
 module.exports = {
   wrapWithHandlers,
-  testNamesEquality,
 };

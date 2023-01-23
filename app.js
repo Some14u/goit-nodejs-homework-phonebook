@@ -2,10 +2,8 @@ const express = require("express");
 const logger = require("morgan");
 const cors = require("cors");
 
-const path = require("path");
-const dbPath = path.resolve("./", "db", "contacts.json");
 const { initDB } = require("./repositories/contacts");
-initDB(dbPath);
+initDB("./db/contacts.json");
 
 const contactsRouter = require("./controllers/contacts");
 

@@ -1,18 +1,19 @@
 const fs = require("fs/promises");
-const { Contact } = require("../models/contact");
+const Contact = require("../models/contact");
 
+// Internal memory contacts storage
 let contacts;
+// Current db address, populated by initDB
 let contactsPath;
 // eslint-disable-next-line prefer-const
 let autoSave = true;
 
 /** Converts raw string to array of contacts. The id key would be converted to Number */
 function parseRawData(data) {
-  const reviver = (key, value) => (key === "id" ? Number(value) : value);
-  return JSON.parse(data, reviver).map((contact) => new Contact(contact));
+  return JSON.parse(data).map((contact) => new Contact(contact));
 }
 
-/** Loads contacts from file */
+/** Loads all contacts from file */
 async function initDB(path) {
   contactsPath = path;
   const data = await fs.readFile(path, { encoding: "utf-8" });
@@ -25,32 +26,47 @@ async function save() {
   await fs.writeFile(contactsPath, data);
 }
 
+/** Returns all contacts */
 function getAll() {
   return contacts;
 }
 
+/** Returns a single contact by index */
 function getByIdx(idx) {
   return contacts[idx];
 }
 
+/**
+ * Adds a contact with params validation
+ * Can throw validation error
+ */
 async function add(params) {
   params.id = findNextEmptyId();
-  params = Contact.validateParams(params);
-  const contact = new Contact(params);
+  const validatedParams = Contact.validateParams(params);
+  const contact = new Contact(validatedParams);
   contacts.push(contact);
   contacts.sort((a, b) => a.id - b.id);
   if (autoSave) await save();
   return contact;
 }
 
-async function updateByIdx(idx, contact) {
-  contacts[idx] = Contact.create({ ...contacts[idx], ...contact });
+/**
+ * Updates contact by index with params validation
+ * Can throw validation error
+ */
+async function updateByIdx(idx, params) {
+  const rawParams = { ...params, id: contacts[idx].id };
+  const validatedParams = Contact.validateParams(rawParams);
+
+  // I decided to update contacts immutably
+  contacts[idx] = new Contact(validatedParams);
   if (autoSave) await save();
   return contacts[idx];
 }
 
+/** Removes a contact by index */
 async function removeByIdx(idx) {
-  contacts = contacts.splice(idx, 1);
+  contacts.splice(idx, 1);
   if (autoSave) await save();
 }
 
