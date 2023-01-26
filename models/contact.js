@@ -1,5 +1,5 @@
 const Joi = require("joi");
-const ForwardedError = require("../helpers/forwardedError");
+const { ErrorWithStatusCode } = require("../helpers");
 
 const patterns = {
   phone: /^([+]?[\s0-9]+)?(\d{3}|[(]?[0-9]+[)])?([-]?[\s]?[0-9])+$/,
@@ -51,21 +51,33 @@ class Contact {
   /**
    * Provides **params** validation with {@link Contact.validationSchema|validators}
    * @param {ContactParams} params an object with fields to validate
-   * @param {boolean} [required=true] adds required rule for every validator, otherwise default behaviour will be applied
-   * @throws corresponding to validation error using {@link ForwardedError}
+   * @param {Joi.PresenceMode} [presence] applies presence rule for every validator, otherwise default behaviour will be applied
+   * @throws corresponding to validation error using {@link ErrorWithStatusCode}
    * @return {ContactParams} corrected by validators parameters in case of success
    */
-  static validateParams(params, required = true) {
-    const res = Contact.validationSchema.validate(params, {
-      presence: required ? "required" : "optional",
-    });
-    if (res.error) {
-      throw new ForwardedError(
-        400,
-        res.error.details?.[0]?.message || "Validation error"
-      );
-    }
-    return res.value;
+  static validateParams(params, presence) {
+    const res = Contact.validationSchema.validate(
+      params,
+      presence && { presence }
+    );
+    if (!res.error) return res.value;
+    throw new ErrorWithStatusCode(400, res.error.details?.[0]?.message);
+  }
+
+  /**
+   * Validates one field by it's name and value, using {@link Contact.validationSchema|validation schema}.
+   * Always remember to set the new value of the validated field, because validation may cause this value to change.
+   * @param {string} name the name of the field to validate
+   * @param {any} value the value of the field to validate
+   * @param {Joi.PresenceMode} [presence] applies presence rule for every validator, otherwise default behaviour will be applied
+   * @throws corresponding to validation error using {@link ErrorWithStatusCode}
+   * @return {any} validated value in case of success. Note, that Joi validation can cause the value to change.
+   */
+  static validateOneField(name, value, presence) {
+    const rule = this.validationSchema.extract(name);
+    const res = rule.validate(value, presence && { presence });
+    if (!res.error) return res.value;
+    throw new ErrorWithStatusCode(400, res.error.details?.[0]?.message);
   }
 
   /**

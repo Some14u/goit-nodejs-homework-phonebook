@@ -72,7 +72,7 @@ async function removeByIdx(idx) {
 
 /** Finds contact by provided field and it's value */
 function findIdxByField(name, value, comparator) {
-  const res = Contact.validateParams({ [name]: value }, false);
+  const res = Contact.validateParams({ [name]: value }, "optional");
   const idx = contacts.findIndex(
     (c) => comparator?.(c[name], res[name]) ?? c[name] === res[name]
   );

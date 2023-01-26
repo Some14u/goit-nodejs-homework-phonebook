@@ -1,10 +1,10 @@
-const express = require("express");
+/** @typedef {import("express").RequestHandler} RequestHandler */
 
 const service = require("../services/contacts");
 
 /**
  *
- * @type {express.RequestHandler}
+ * @type {RequestHandler}
 */
 const listContacts = async (req, res) => {
   const contacts = service.getAll();
@@ -13,7 +13,7 @@ const listContacts = async (req, res) => {
 
 /**
  *
- * @type {express.RequestHandler}
+ * @type {RequestHandler}
 */
 const getContactById = async (req, res) => {
   const { id } = req.params.id;
@@ -23,27 +23,27 @@ const getContactById = async (req, res) => {
 
 /**
  *
- * @type {express.RequestHandler}
+ * @type {RequestHandler}
 */
 const removeContact = async (req, res) => {
   const { id } = req.params.id;
-  const contact = service.remove(id);
-  res.json();
+  service.remove(id);
+  res.end();
 }
 
 /**
  *
- * @type {express.RequestHandler}
+ * @type {RequestHandler}
 */
 const addContact = async (req, res) => {
   const params = req.body;
   const contact = service.add(params);
-  res.json(contact);
+  res.status(201).json(contact);
 }
 
 /**
  *
- * @type {express.RequestHandler}
+ * @type {RequestHandler}
 */
 const updateContact = async (req, res) => {
   const { id } = req.params.id;
