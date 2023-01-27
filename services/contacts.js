@@ -1,6 +1,11 @@
-const ForwardedError = require("../helpers/forwardedError");
+const ErrorWithStatusCode = require("../helpers/forwardedError");
 const { testNamesEquality } = require("../models/contact");
 const api = require("../repositories/contacts");
+
+/** Registering errors which could be yielded by the service */
+ErrorWithStatusCode.registerError("notFound", 404, "Not found")
+  .registerError("exist", 409, 'There is another contact with "name" = "%s"')
+  .registerError("missingFields", 400, "Missing fields");
 
 /** Returns a list of all contacts in the database */
 const getAll = api.getAll;
@@ -34,7 +39,7 @@ async function remove(id) {
 async function add(params) {
   if (params?.name) {
     const idx = api.findIdxByField("name", params.name, testNamesEquality);
-    if (idx !== -1) throw new ForwardedError("exist", [params.name]);
+    if (idx !== -1) throw new ErrorWithStatusCode("exist", [params.name]);
   }
   const res = await api.add(params);
   res.statusCode = 201;
@@ -50,7 +55,7 @@ async function add(params) {
 async function update(id, params) {
   // Checking if there are parameters
   if (!params || Object.keys(params).length === 0)
-    throw new ForwardedError("missingFields");
+    throw new ErrorWithStatusCode("missingFields");
 
   // Checking if there is a contact with provided id
   const idx = getIdxByIdOrThrow(id);
@@ -60,7 +65,7 @@ async function update(id, params) {
   if (params.name) {
     const idx2 = api.findIdxByField("name", params.name, testNamesEquality);
     if (idx2 !== -1 && idx !== idx2)
-      throw new ForwardedError("exist", [params.name]);
+      throw new ErrorWithStatusCode("exist", [params.name]);
   }
 
   return await api.updateByIdx(idx, params);
@@ -74,14 +79,13 @@ async function update(id, params) {
  */
 function getIdxByIdOrThrow(id) {
   const idx = api.findIdxByField("id", id);
-  if (idx === -1) throw new ForwardedError("notFound");
+  if (idx === -1) throw new ErrorWithStatusCode("notFound");
   return idx;
 }
 
-/** Registering errors which could be yielded by the service */
-ForwardedError.registerError("notFound", 404, "Not found")
-  .registerError("exist", 409, 'There is another contact with "name" = "%s"')
-  .registerError("missingFields", 400, "Missing fields");
+function testName(name) {
+
+}
 
 module.exports = {
   getAll,

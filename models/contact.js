@@ -17,7 +17,7 @@ class Contact {
   email;
   phone;
 
-  static validationSchema = Joi.object({
+  static validators = {
     id: Joi.number() // id
       .integer()
       .positive()
@@ -35,7 +35,7 @@ class Contact {
       .replace(patterns.consecutiveSpaces, " ")
       .regex(patterns.phone, { name: "reqired" })
       .label("phone"),
-  });
+  };
 
   /**
    * Create a contact
@@ -49,35 +49,21 @@ class Contact {
   }
 
   /**
-   * Provides **params** validation with {@link Contact.validationSchema|validators}
-   * @param {ContactParams} params an object with fields to validate
-   * @param {Joi.PresenceMode} [presence] applies presence rule for every validator, otherwise default behaviour will be applied
-   * @throws corresponding to validation error using {@link ErrorWithStatusCode}
-   * @return {ContactParams} corrected by validators parameters in case of success
+   * Validates object with fields by using {@link Contact.validators|validators}.
+   * The values of the object may change after validation due to possible normalization.
+   * @param {ContactParams} fields object with raw fields to validate
+   * @param {[string]} requiredList list of keys, which are required to be present
+   * @throws corresponding validation error using {@link ErrorWithStatusCode}
    */
-  static validateParams(params, presence) {
-    const res = Contact.validationSchema.validate(
-      params,
-      presence && { presence }
-    );
-    if (!res.error) return res.value;
-    throw new ErrorWithStatusCode(400, res.error.details?.[0]?.message);
-  }
-
-  /**
-   * Validates one field by it's name and value, using {@link Contact.validationSchema|validation schema}.
-   * Always remember to set the new value of the validated field, because validation may cause this value to change.
-   * @param {string} name the name of the field to validate
-   * @param {any} value the value of the field to validate
-   * @param {Joi.PresenceMode} [presence] applies presence rule for every validator, otherwise default behaviour will be applied
-   * @throws corresponding to validation error using {@link ErrorWithStatusCode}
-   * @return {any} validated value in case of success. Note, that Joi validation can cause the value to change.
-   */
-  static validateOneField(name, value, presence) {
-    const rule = this.validationSchema.extract(name);
-    const res = rule.validate(value, presence && { presence });
-    if (!res.error) return res.value;
-    throw new ErrorWithStatusCode(400, res.error.details?.[0]?.message);
+  static validate(fields, requiredList = []) {
+    for (const [key, validator] of Object.entries(Contact.validators)) {
+      const required = requiredList.includes(key) && { presence: "required" };
+      const res = validator.validate(fields, required);
+      if (res.error) {
+        throw new ErrorWithStatusCode(400, res.error.details?.[0]?.message);
+      }
+      fields[key] = res.value;
+    }
   }
 
   /**

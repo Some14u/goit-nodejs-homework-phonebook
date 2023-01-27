@@ -6,10 +6,10 @@ module.exports = {
     es2021: true,
     node: true,
   },
-  extends: ['standard', 'prettier'],
+  extends: ["standard", "prettier"],
   parserOptions: {
     ecmaVersion: 12,
     requireConfigFile: false,
   },
   rules: {},
-}
+};
