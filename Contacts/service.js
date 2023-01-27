@@ -1,21 +1,18 @@
-const ErrorWithStatusCode = require("../helpers/forwardedError");
-const { testNamesEquality } = require("../models/contact");
-const api = require("../repositories/contacts");
-
-/** Registering errors which could be yielded by the service */
-ErrorWithStatusCode.registerError("notFound", 404, "Not found")
-  .registerError("exist", 409, 'There is another contact with "name" = "%s"')
-  .registerError("missingFields", 400, "Missing fields");
+const { testNamesEquality } = require("./model");
+const api = require("../db/fsApi");
+const { ExistError, NotFoundError } = require("../helpers/errors");
 
 /** Returns a list of all contacts in the database */
-const getAll = api.getAll;
+function getAll() {
+  return api.getAll();
+}
 
 /**
  * Searches a contact matching id
  * @param {Number} id  id of contact to be returned
  * @return {Contact} the contact with provided id
  */
-function getById(id) {
+function getByIdOrThrow(id) {
   const idx = getIdxByIdOrThrow(id);
   return api.getByIdx(idx);
 }
@@ -25,10 +22,9 @@ function getById(id) {
  * @param {Number} id id of contact to be removed
  * @return an object with success message
  */
-async function remove(id) {
+async function removeByIdOrThrow(id) {
   const idx = getIdxByIdOrThrow(id);
   await api.removeByIdx(idx);
-  return { message: "Contact deleted" };
 }
 
 /**
@@ -36,13 +32,12 @@ async function remove(id) {
  * Checks the database for anoter contact with the same name.
  * @param params an object, containing **name**, **email**, and **phone** fields.
  */
-async function add(params) {
+async function addOrThrow(params) {
   if (params?.name) {
     const idx = api.findIdxByField("name", params.name, testNamesEquality);
-    if (idx !== -1) throw new ErrorWithStatusCode("exist", [params.name]);
+    if (idx !== -1) throw new ExistError(params.name);
   }
   const res = await api.add(params);
-  res.statusCode = 201;
   return res;
 }
 
@@ -52,11 +47,7 @@ async function add(params) {
  * @param {Number} id id of contact to be updated
  * @param params an object, containing **name**, **email**, and **phone** fields.
  */
-async function update(id, params) {
-  // Checking if there are parameters
-  if (!params || Object.keys(params).length === 0)
-    throw new ErrorWithStatusCode("missingFields");
-
+async function updateByIdOrThrow(id, params) {
   // Checking if there is a contact with provided id
   const idx = getIdxByIdOrThrow(id);
 
@@ -64,33 +55,28 @@ async function update(id, params) {
   // if there is the same name already in the database(with another idx)
   if (params.name) {
     const idx2 = api.findIdxByField("name", params.name, testNamesEquality);
-    if (idx2 !== -1 && idx !== idx2)
-      throw new ErrorWithStatusCode("exist", [params.name]);
+    if (idx2 !== -1 && idx !== idx2) throw new ExistError(params.name);
   }
-
   return await api.updateByIdx(idx, params);
 }
 
 /**
  * A helper function to reduce boilerplate. Searches the element with given id.
- * Throws error if there is none.
- * @param {Number} id  id of contact to be returned
- * @return index of the element with given id
+ * @param {Number} id id of contact to be returned
+ * @param {any} error an error to be thrown
+ * @return index of the element with provided id
+ * @throws {@link NotFoundError} error if there is no result found.
  */
 function getIdxByIdOrThrow(id) {
   const idx = api.findIdxByField("id", id);
-  if (idx === -1) throw new ErrorWithStatusCode("notFound");
+  if (idx === -1) throw new NotFoundError();
   return idx;
-}
-
-function testName(name) {
-
 }
 
 module.exports = {
   getAll,
-  getById,
-  remove,
-  add,
-  update,
+  getByIdOrThrow,
+  removeByIdOrThrow,
+  addOrThrow,
+  updateByIdOrThrow,
 };

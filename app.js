@@ -2,28 +2,28 @@ const express = require("express");
 const logger = require("morgan");
 const cors = require("cors");
 
-const { initDB } = require("./repositories/contacts");
-initDB("./db/contacts.json");
+const contactsRouter = require("./Contacts/router");
+const { errorHandler } = require("./helpers/errors");
+const { notFoundHandler } = require("./helpers");
 
-const contactsRouter = require("./routes/api/contactsRoute");
-const { errorHandler } = require("./helpers");
+const fsApi = require("./db/fsApi");
+const Contact = require("./Contacts/model");
+
+fsApi.init(Contact, "./db/contacts.json");
 
 const app = express();
 
 const formatsLogger = app.get("env") === "development" ? "dev" : "short";
 
+app
+  .use(logger(formatsLogger))
+  .use(cors())
+  .use(express.urlencoded({ extended: false }))
+  .use(express.json())
 
-app.use(logger(formatsLogger));
-app.use(cors());
-app.use(express.urlencoded({ extended: false }));
-app.use(express.json());
+  .use("/api/contacts", contactsRouter)
 
-app.use("/api/contacts", contactsRouter);
-
-app.use((req, res) => {
-  res.status(404).json({ message: "Not found" });
-});
-
-app.use(errorHandler);
+  .use(notFoundHandler)
+  .use(errorHandler);
 
 module.exports = app;
