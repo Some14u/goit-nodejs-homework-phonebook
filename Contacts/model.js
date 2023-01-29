@@ -63,17 +63,19 @@ function validateJoi(fields, forceRequiredList = []) {
  * Tests names for equality by splitting them to words, and then testing
  * for symmetric dirrefence of those two word sets.
  *
- * The test is case insensitive.
- *
  * Basically, it works in the way that "Bob Ross" and "ROSS bob" considered equal.
+ *
+ * The test is case insensitive.
+ * @param {string} name a name to be filtered with
+ * @returns {mongoose.FilterQuery} a {@link mongoose.FilterQuery|mongoose filter query} to match the name.
  */
-function testNamesEquality(a, b) {
-  const wordsA = a.toLocaleLowerCase().split(" ");
-  const wordsB = b.toLocaleLowerCase().split(" ");
-  return (
-    wordsA.length === wordsB.length &&
-    wordsA.filter((x) => !wordsB.includes(x)).length === 0
-  );
+function filterByNameQuery(name) {
+  const nameParts = name.toLocaleLowerCase().split(" ");
+  return {
+    $expr: {
+      $setEquals: [nameParts, { $split: [{ $toLower: "$name" }, " "] }],
+    },
+  };
 }
 
 const contactSchema = new mongoose.Schema(
@@ -93,7 +95,10 @@ const contactSchema = new mongoose.Schema(
       default: false,
     },
   },
-  { statics: { validateJoi, testNamesEquality } }
+  {
+    statics: { validateJoi, filterByNameQuery },
+    versionKey: false,
+  }
 );
 
 const Contact = mongoose.model("Contact", contactSchema);

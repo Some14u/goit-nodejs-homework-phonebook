@@ -1,5 +1,4 @@
 const Joi = require("joi");
-const mongoose = require("mongoose");
 const { messages } = require(".");
 
 /**
@@ -20,11 +19,9 @@ function wrapWithErrorHandling(routerRequestHandlers) {
  * @type {import("express").ErrorRequestHandler} */
 function errorHandler(err, _, res, __) {
   let status = 500;
-  console.log(err.name, err.constructor?.name);
   if (err instanceof NotFoundError) status = 404;
   else if (err instanceof MissingFieldsError) status = 400;
   else if (err instanceof Joi.ValidationError) status = 400;
-  else if (err instanceof mongoose.Error) status = 400;
   else if (err instanceof ExistError) status = 409;
 
   res.status(status).json({ message: err.message });
