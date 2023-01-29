@@ -1,10 +1,11 @@
 const { testNamesEquality } = require("./model");
 const api = require("../db/fsApi");
 const { ExistError, NotFoundError } = require("../helpers/errors");
+const Contact = require("./model");
 
 /** Returns a list of all contacts in the database */
-function getAll() {
-  return api.getAll();
+async function getAllOrThrow() {
+  return await Contact.find().orFail(new NotFoundError());
 }
 
 /**
@@ -12,9 +13,8 @@ function getAll() {
  * @param {Number} id  id of contact to be returned
  * @return {Contact} the contact with provided id
  */
-function getByIdOrThrow(id) {
-  const idx = getIdxByIdOrThrow(id);
-  return api.getByIdx(idx);
+async function getByIdOrThrow(id) {
+  return await Contact.findById(id).orFail(new NotFoundError());
 }
 
 /**
@@ -23,8 +23,7 @@ function getByIdOrThrow(id) {
  * @return an object with success message
  */
 async function removeByIdOrThrow(id) {
-  const idx = getIdxByIdOrThrow(id);
-  await api.removeByIdx(idx);
+  await Contact.findByIdAndDelete(id).orFail(new NotFoundError());
 }
 
 /**
@@ -33,10 +32,9 @@ async function removeByIdOrThrow(id) {
  * @param params an object, containing **name**, **email**, and **phone** fields.
  */
 async function addOrThrow(params) {
-  if (params?.name) {
-    const idx = api.findIdxByField("name", params.name, testNamesEquality);
-    if (idx !== -1) throw new ExistError(params.name);
-  }
+  // const contact = Contact.find().where("name").
+  const idx = api.findIdxByField("name", params.name, testNamesEquality);
+  if (idx !== -1) throw new ExistError(params.name);
   const res = await api.add(params);
   return res;
 }
@@ -74,7 +72,7 @@ function getIdxByIdOrThrow(id) {
 }
 
 module.exports = {
-  getAll,
+  getAll: getAllOrThrow,
   getByIdOrThrow,
   removeByIdOrThrow,
   addOrThrow,

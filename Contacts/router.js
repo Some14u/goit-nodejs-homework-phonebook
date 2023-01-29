@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router();
 
 const { createValidatorMiddleware } = require("../helpers");
-const { validate } = require("./model");
+const { validateJoi } = require("./model");
 const { MissingFieldsError } = require("../helpers/errors");
 
 const handlers = require("./controller");
@@ -11,12 +11,8 @@ const handlers = require("./controller");
 require("../helpers/errors").wrapWithErrorHandling(handlers);
 
 // Build two types of validators: id and contact
-const idValidator = createValidatorMiddleware("params", validate, ["id"]);
-const contactValidator = createValidatorMiddleware("body", validate, [
-  "name",
-  "email",
-  "phone",
-]);
+const idValidator = createValidatorMiddleware("params", validateJoi, ["id"]);
+const contactValidator = createValidatorMiddleware("body", validateJoi);
 
 /**
  * This stupid special case validator is required by the task rules.
