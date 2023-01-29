@@ -33,10 +33,24 @@ async function removeByIdOrThrow(id) {
  */
 async function addOrThrow(params) {
   // const contact = Contact.find().where("name").
-  const idx = api.findIdxByField("name", params.name, testNamesEquality);
-  if (idx !== -1) throw new ExistError(params.name);
-  const res = await api.add(params);
-  return res;
+  const nameParts = params.name.toLocaleLowerCase().split(" ");
+  const res = await Contact.aggregate([
+    {
+      $project: {
+        equals: {
+          $setEquals: [nameParts, { $split: [{ $toLower: "$name" }, " "] }],
+        },
+      },
+    },
+    { $match: { equals: true } },
+    { $limit: 1 },
+  ]).explain("executionStats", (err, explain) => {
+    console.log(JSON.stringify(explain, null, 2));
+  });
+  // const idx = api.findIdxByField("name", params.name, testNamesEquality);
+  // if (idx !== -1) throw new ExistError(params.name);
+  // const res = await api.add(params);
+  return [];
 }
 
 /**
