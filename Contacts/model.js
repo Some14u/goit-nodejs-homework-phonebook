@@ -2,11 +2,8 @@ const mongoose = require("mongoose");
 const Joi = require("joi");
 Joi.objectId = require("joi-objectid")(Joi);
 
-const { messages } = require("../helpers");
-
-/**
- * @typedef {{id: Number, name: String, email:String, phone: String}} ContactParams
- */
+const messages = require("../helpers/messages");
+const { createJoiValidator } = require("../helpers/validation");
 
 const patterns = {
   phone: /^([+]?[\s0-9]+)?(\d{3}|[(]?[0-9]+[)])?([-]?[\s]?[0-9])+$/,
@@ -20,44 +17,19 @@ const validators = {
   name: Joi.string() // name
     .trim()
     .replace(patterns.consecutiveSpaces, " ")
-    .label("name")
-    .required(),
+    .label("name"),
   email: Joi.string() // email
     .trim()
     .email()
-    .label("email")
-    .required(),
+    .label("email"),
   phone: Joi.string() // phone
     .trim()
     .replace(patterns.consecutiveSpaces, " ")
     .regex(patterns.phone, { name: "required" })
-    .label("phone")
-    .required(),
-  favorite: Joi.boolean(), // favorite
+    .label("phone"),
+  favorite: Joi.boolean() // favorite
+    .label("favorite"),
 };
-
-/**
- * Validates object with fields by using {@link Contact.validators|validators}.
- * The values of the object may change after validation due to possible normalization.
- *
- * It considers only those fields that were given, **plus** the ones from **forceRequiredList** parameter
- * @param {ContactParams} fields an object with raw fields to validate
- * @param {[string]|"all"} [forceRequiredList] an array of keys, which are required to be present. Could also be "all".
- * @throws corresponding validation error using {@link ErrorWithStatusCode}
- */
-function validateJoi(fields, forceRequiredList = []) {
-  if (forceRequiredList === "all") forceRequiredList = Object.keys(validators);
-  const listToValidate = [...Object.keys(fields), ...forceRequiredList];
-  for (const key of listToValidate) {
-    const required = forceRequiredList?.includes(key);
-    const value = Joi.attempt(
-      fields[key],
-      validators[key],
-      required && { presence: "required" }
-    );
-    if (typeof value !== "undefined") fields[key] = value;
-  }
-}
 
 /**
  * Tests names for equality by splitting them to words, and then testing
@@ -96,7 +68,7 @@ const contactSchema = new mongoose.Schema(
     },
   },
   {
-    statics: { validateJoi, filterByNameQuery },
+    statics: { validateJoi: createJoiValidator(validators), filterByNameQuery },
     versionKey: false,
   }
 );

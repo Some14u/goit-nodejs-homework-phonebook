@@ -1,10 +1,10 @@
 /** @typedef {import("express").RequestHandler} RequestHandler */
-const { messages } = require("../helpers");
+const messages = require("../helpers/messages");
 const service = require("./service");
 
 /** @type {RequestHandler} */
 const listContacts = async (_, res) => {
-  const contacts = await service.getAll();
+  const contacts = await service.getAllOrThrow();
   res.json(contacts);
 };
 
@@ -37,10 +37,19 @@ const updateContact = async (req, res) => {
   res.json(contact);
 };
 
+/** @type {RequestHandler} */
+const updateContactStatus = async (req, res) => {
+  const { id } = req.params;
+  const params = req.body;
+  const contact = await service.updateStatusContact(id, params);
+  res.json(contact);
+}
+
 module.exports = {
   listContacts,
   getContactById,
   removeContact,
   addContact,
   updateContact,
+  updateContactStatus,
 };

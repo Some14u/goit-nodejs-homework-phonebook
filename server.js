@@ -4,12 +4,13 @@ const logger = require("morgan");
 const cors = require("cors");
 
 const contactsRouter = require("./Contacts/router");
-const { errorHandler, showErrorAndStopApp } = require("./helpers/errors");
-const { notFoundHandler, messages } = require("./helpers");
 
-const fsApi = require("./db/fsApi");
-const Contact = require("./Contacts/model");
-fsApi.init(Contact, "./db/contacts.json");
+const messages = require("./helpers/messages");
+const {
+  errorHandler,
+  showErrorAndStopApp,
+  notFoundHandler,
+} = require("./helpers/errors");
 
 const { connectMongoDB } = require("./db/connection");
 

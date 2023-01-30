@@ -1,5 +1,3 @@
-const { testNamesEquality } = require("./model");
-const api = require("../db/fsApi");
 const { ExistError, NotFoundError } = require("../helpers/errors");
 const Contact = require("./model");
 
@@ -46,35 +44,23 @@ async function addOrThrow(params) {
  * @param params an object, containing **name**, **email**, and **phone** fields.
  */
 async function updateByIdOrThrow(id, params) {
-  // Checking if there is a contact with provided id
-  const idx = getIdxByIdOrThrow(id);
-
   // Checking if we have "name" parameter and if so, then also checking,
-  // if there is the same name already in the database(with another idx)
-  if (params.name) {
-    const idx2 = api.findIdxByField("name", params.name, testNamesEquality);
-    if (idx2 !== -1 && idx !== idx2) throw new ExistError(params.name);
-  }
-  return await api.updateByIdx(idx, params);
+  // if there is the same name already in the database(with another id)
+  const match = await Contact.findOne(Contact.filterByNameQuery(params.name));
+  if (match && match.id !== id) throw new ExistError(params.name);
+  return await Contact.findByIdAndUpdate(id, params, { new: true });
 }
 
-/**
- * A helper function to reduce boilerplate. Searches the element with given id.
- * @param {Number} id id of contact to be returned
- * @param {any} error an error to be thrown
- * @return index of the element with provided id
- * @throws {@link NotFoundError} error if there is no result found.
- */
-function getIdxByIdOrThrow(id) {
-  const idx = api.findIdxByField("id", id);
-  if (idx === -1) throw new NotFoundError();
-  return idx;
+async function updateStatusContact(id, params) {
+  console.log("updateStatusContact", params)
+  // await Contact.findByIdAndUpdate(id, params, { new: true });
 }
 
 module.exports = {
-  getAll: getAllOrThrow,
+  getAllOrThrow,
   getByIdOrThrow,
   removeByIdOrThrow,
   addOrThrow,
   updateByIdOrThrow,
+  updateStatusContact,
 };

@@ -1,5 +1,6 @@
+/** @typedef {import("express").RequestHandler} RequestHandler */
 const Joi = require("joi");
-const { messages } = require(".");
+const messages = require("./messages");
 
 /**
  * Wraps each element in array of {@link RequestHandler|router handlers} with
@@ -36,17 +37,24 @@ class ExistError extends Error {
 
 /** Error for missing required parameter */
 class MissingFieldsError extends Error {
-  constructor() {
-    super(messages.missingFields);
+  constructor(message) {
+    super(message || messages.missingFields);
   }
 }
 
 /** Resource not found error */
 class NotFoundError extends Error {
   constructor() {
-    console.log("here");
     super(messages.notFound);
   }
+}
+
+/**
+ * Main 404 handler
+ * @type {RequestHandler}
+ */
+ function notFoundHandler(_, res) {
+  res.status(404).json({ message: messages.notFound });
 }
 
 /** Shows error in the console and exits */
@@ -63,5 +71,6 @@ module.exports = {
   ExistError,
   MissingFieldsError,
   NotFoundError,
+  notFoundHandler,
   showErrorAndStopApp,
 };
