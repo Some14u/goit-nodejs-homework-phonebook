@@ -22,6 +22,7 @@ const putMissingFieldsValidator = createValidatorMiddleware(
   }
 );
 
+/** favorite patch validation */
 const favoriteValidator = createValidatorMiddleware("body", (body) => {
   // This check is here because of task requirements.
   if (!body.favorite) throw new MissingFieldsError(messages.missingFavorite);
