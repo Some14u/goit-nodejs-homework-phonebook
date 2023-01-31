@@ -6,19 +6,15 @@ const cors = require("cors");
 const contactsRouter = require("./Contacts/router");
 
 const messages = require("./helpers/messages");
-const {
-  globalErrorHandler,
-  showErrorAndStopApp,
-  notFoundHandler,
-} = require("./helpers/errors");
+const errors = require("./helpers/errors");
 
 const { connectMongoDB } = require("./db/connection");
 
 connectMongoDB()
   .then(() => console.log(messages.databaseConnected))
-  .catch(showErrorAndStopApp("databaseError"))
+  .catch(errors.showErrorAndStopApp("databaseError"))
   .then(startServer)
-  .catch(showErrorAndStopApp("unhandledError"));
+  .catch(errors.showErrorAndStopApp("unhandledError"));
 
 function startServer() {
   const app = express();
@@ -33,9 +29,9 @@ function startServer() {
 
     .use("/api/contacts", contactsRouter)
 
-    .use(notFoundHandler)
-    .use(globalErrorHandler)
+    .use(errors.globalNotFoundHandler)
+    .use(errors.globalErrorHandler)
 
     .listen(port, () => console.log(messages.serverRunning(port)))
-    .on("error", showErrorAndStopApp("unhandledError"));
+    .on("error", errors.showErrorAndStopApp("unhandledError"));
 }

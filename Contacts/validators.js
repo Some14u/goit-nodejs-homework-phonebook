@@ -1,7 +1,7 @@
 /** @typedef {import("express").RequestHandler} RequestHandler */
 const Contact = require("./model");
 const messages = require("../helpers/messages");
-const { MissingFieldsError } = require("../helpers/errors");
+const { ValidationError } = require("../helpers/errors");
 
 /**
  * Id validator
@@ -34,7 +34,7 @@ function contactValidator(req, _, next) {
  */
 function putMissingFieldsValidator(req, _, next) {
   const { name, email, phone } = req.body;
-  if (!name && !email && !phone) throw new MissingFieldsError();
+  if (!name && !email && !phone) throw new ValidationError(messages.missingFields);
   next();
 }
 
@@ -43,12 +43,12 @@ function putMissingFieldsValidator(req, _, next) {
  * @type {RequestHandler}
  */
 function favoriteValidator({ body }, _, next) {
-  // If user send a simple "true"/"false", it will end up as the first
+  // If user sends a simple "true"/"false", it will end up as the first
   // and the only key in the request body
   const bodyKeys = Object.keys(body);
   if (!body.favorite && bodyKeys.length === 1) body.favorite = bodyKeys[0];
   // This check is here because of task requirements.
-  if (!body.favorite) throw new MissingFieldsError(messages.missingFavorite);
+  if (!body.favorite) throw new ValidationError(messages.missingFavorite);
   // This basically does the same but with joi builtin error message
   Contact.validateJoi(body, {
     process: ["favorite"],

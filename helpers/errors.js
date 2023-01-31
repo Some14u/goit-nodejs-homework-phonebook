@@ -1,5 +1,6 @@
 /** @typedef {import("express").RequestHandler} RequestHandler */
 const Joi = require("joi");
+const mongoose = require("mongoose");
 const messages = require("./messages");
 
 /**
@@ -15,14 +16,26 @@ function wrapWithErrorHandling(routerRequestHandlers) {
 }
 
 /**
+ * The main 404 handler
+ * @type {RequestHandler}
+ */
+function globalNotFoundHandler(_, __, next) {
+  next(new NotFoundError());
+}
+
+/**
  * Main error handler. Handles custom types of errors (including Joi validation)
  * and manages correct status codes.
- * @type {import("express").ErrorRequestHandler} */
+ * @type {import("express").ErrorRequestHandler}
+ */
 function globalErrorHandler(err, _, res, __) {
   let status = 500;
   if (err instanceof NotFoundError) status = 404;
-  else if (err instanceof MissingFieldsError) status = 400;
+  else if (err instanceof ValidationError) status = 400;
   else if (err instanceof Joi.ValidationError) status = 400;
+  // Technically in mongoose the casting phase is not a part of validation, but for us it's 400 anyway
+  else if (err instanceof mongoose.Error.CastError) status = 400;
+  else if (err instanceof mongoose.Error.ValidationError) status = 400;
   else if (err instanceof ExistError) status = 409;
 
   res.status(status).json({ message: err.message });
@@ -35,11 +48,10 @@ class ExistError extends Error {
   }
 }
 
-/** Error for missing required parameter */
-class MissingFieldsError extends Error {
-  constructor(message) {
-    super(message || messages.missingFields);
-  }
+/** Generig validation error handler */
+class ValidationError extends Error {
+  // Nothing here because it is required only to detect the error type
+  // in globalErrorHanlder
 }
 
 /** Resource not found error */
@@ -47,14 +59,6 @@ class NotFoundError extends Error {
   constructor() {
     super(messages.notFound);
   }
-}
-
-/**
- * Main 404 handler
- * @type {RequestHandler}
- */
-function notFoundHandler(_, res) {
-  res.status(404).json({ message: messages.notFound });
 }
 
 /** Shows error in the console and exits */
@@ -67,10 +71,10 @@ function showErrorAndStopApp(msg) {
 
 module.exports = {
   wrapWithErrorHandling,
+  globalNotFoundHandler,
   globalErrorHandler,
   ExistError,
-  MissingFieldsError,
+  ValidationError,
   NotFoundError,
-  notFoundHandler,
   showErrorAndStopApp,
 };

@@ -32,13 +32,13 @@ const validators = {
 };
 
 /**
- * Tests names for equality by splitting them to words, and then testing
- * for symmetric dirrefence of those two word sets.
- *
- * Basically, it works in the way that "Bob Ross" and "ROSS bob" considered equal.
+ * A mongoose query filter, which tests names for equality by splitting them to words
+ * and then testing for symmetric difference of those two word sets.
  *
  * The test is case insensitive.
- * @param {string} name a name to be filtered with
+ *
+ * Basically, it works in the way that "Bob Ross" and "ROSS bob" considered equal.
+ * @param {string} name a name to filter with
  * @returns {mongoose.FilterQuery} a {@link mongoose.FilterQuery|mongoose filter query} to match the name.
  */
 function filterByNameQuery(name) {
