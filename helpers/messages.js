@@ -1,5 +1,4 @@
 
-
 // List of all possible custom messages
 const messages = {
   notFound: "Not found",

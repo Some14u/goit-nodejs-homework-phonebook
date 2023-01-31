@@ -45,7 +45,6 @@ async function addOrThrow(params) {
 async function updateByIdOrThrow(id, params) {
   // Checking if we have "name" parameter and if so, then also checking,
   // if there is the same name already in the database(with another id)
-  console.log("here");
   const match = await Contact.findOne(Contact.filterByNameQuery(params.name));
   if (match && match.id !== id) throw new ExistError(params.name);
   return await Contact.findByIdAndUpdate(id, params, { new: true }).orFail(

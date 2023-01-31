@@ -3,32 +3,34 @@ const router = express.Router();
 
 const handlers = require("./controller");
 
-const {
-  contactValidator,
-  idValidator,
-  putMissingFieldsValidator,
-  favoriteValidator,
-} = require("./validators");
+const validators = require("./validators");
 
-// Modify handlers to make sure they will intercept errors
-require("../helpers/errors").wrapWithErrorHandling(handlers);
+const wrapWithErrorHandling = require("../helpers/errors");
+
+// Modify handlers and validators to make sure they will intercept errors
+wrapWithErrorHandling(handlers);
+wrapWithErrorHandling(validators);
 
 router //
   .route("/")
   .get(handlers.listContacts)
-  .post(contactValidator, handlers.addContact);
+  .post(validators.contactValidator, handlers.addContact);
 router //
   .route("/:id")
-  .get(idValidator, handlers.getContactById)
-  .delete(idValidator, handlers.removeContact)
+  .get(validators.idValidator, handlers.getContactById)
+  .delete(validators.idValidator, handlers.removeContact)
   .put(
-    idValidator,
-    putMissingFieldsValidator,
-    contactValidator,
+    validators.idValidator,
+    validators.putMissingFieldsValidator,
+    validators.contactValidator,
     handlers.updateContact
   );
 router //
   .route("/:id/favorite")
-  .patch(idValidator, favoriteValidator, handlers.updateContactStatus);
+  .patch(
+    validators.idValidator,
+    validators.favoriteValidator,
+    handlers.updateContactStatus
+  );
 
 module.exports = router;
