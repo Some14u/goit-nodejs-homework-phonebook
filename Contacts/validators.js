@@ -10,7 +10,7 @@ const { ValidationError } = require("../helpers/errors");
 function idValidator(req, _, next) {
   Contact.validateJoi(req.params, {
     process: ["id"],
-    required: ["id"],
+    require: ["id"],
   });
   next();
 }
@@ -22,7 +22,7 @@ function idValidator(req, _, next) {
 function contactValidator(req, _, next) {
   Contact.validateJoi(req.body, {
     process: ["name", "email", "phone", "favorite"],
-    required: ["name", "email", "phone"],
+    require: ["name", "email", "phone"],
   });
   next();
 }
@@ -34,7 +34,8 @@ function contactValidator(req, _, next) {
  */
 function putMissingFieldsValidator(req, _, next) {
   const { name, email, phone } = req.body;
-  if (!name && !email && !phone) throw new ValidationError(messages.missingFields);
+  if (!name && !email && !phone)
+    throw new ValidationError(messages.missingFields);
   next();
 }
 
@@ -52,7 +53,7 @@ function favoriteValidator({ body }, _, next) {
   // This basically does the same but with joi builtin error message
   Contact.validateJoi(body, {
     process: ["favorite"],
-    required: ["favorite"],
+    require: ["favorite"],
   });
   next();
 }

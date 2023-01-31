@@ -5,8 +5,8 @@ const Joi = require("joi");
  * @typedef {Object} JoiValidatorOptions
  * @property {[string]} [process] A list of model fields to validate.
  * Default is all keys that are possible to validate.
- * @property {[string]} [required] A list of model fields that are required.
- * to be present. Default is empty.
+ * @property {[string]} [require] A list of model fields that are require to be present.
+ * Default is empty.
  * @property {boolean} stripExtra If *true* it will remove all extra fields passed to validator,
  * which are not in **process** list. By default it is true.
  *
@@ -23,7 +23,7 @@ const Joi = require("joi");
  * @returns {validateJoi}
  */
 function createJoiValidator(validators) {
-  return (fields, { process, required = [], stripExtra = true }) => {
+  return (fields, { process, require = [], stripExtra = true }) => {
     if (!process) process = Object.keys(validators);
     for (const key of process) {
       // Strip all unwanted extra fields
@@ -32,7 +32,7 @@ function createJoiValidator(validators) {
         continue;
       }
       // Validate against corresponding Joi schema
-      const options = required.includes(key) && { presence: "required" };
+      const options = require.includes(key) && { presence: "required" };
       fields[key] = Joi.attempt(fields[key], validators[key], options);
     }
   };
