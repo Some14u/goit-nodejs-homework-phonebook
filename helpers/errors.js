@@ -10,7 +10,7 @@ const messages = require("./messages");
 function wrapWithErrorHandling(routerRequestHandlers) {
   for (const [key, handler] of Object.entries(routerRequestHandlers)) {
     routerRequestHandlers[key] = (req, res, next) =>
-      Promise.resolve(handler(req, res)).catch(next);
+      Promise.resolve(handler(req, res, next)).catch(next);
   }
 }
 
@@ -18,7 +18,7 @@ function wrapWithErrorHandling(routerRequestHandlers) {
  * Main error handler. Handles custom types of errors (including Joi validation)
  * and manages correct status codes.
  * @type {import("express").ErrorRequestHandler} */
-function errorHandler(err, _, res, __) {
+function globalErrorHandler(err, _, res, __) {
   let status = 500;
   if (err instanceof NotFoundError) status = 404;
   else if (err instanceof MissingFieldsError) status = 400;
@@ -53,7 +53,7 @@ class NotFoundError extends Error {
  * Main 404 handler
  * @type {RequestHandler}
  */
- function notFoundHandler(_, res) {
+function notFoundHandler(_, res) {
   res.status(404).json({ message: messages.notFound });
 }
 
@@ -67,7 +67,7 @@ function showErrorAndStopApp(msg) {
 
 module.exports = {
   wrapWithErrorHandling,
-  errorHandler,
+  globalErrorHandler,
   ExistError,
   MissingFieldsError,
   NotFoundError,

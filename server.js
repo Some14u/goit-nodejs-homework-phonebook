@@ -7,7 +7,7 @@ const contactsRouter = require("./Contacts/router");
 
 const messages = require("./helpers/messages");
 const {
-  errorHandler,
+  globalErrorHandler,
   showErrorAndStopApp,
   notFoundHandler,
 } = require("./helpers/errors");
@@ -34,7 +34,7 @@ function startServer() {
     .use("/api/contacts", contactsRouter)
 
     .use(notFoundHandler)
-    .use(errorHandler)
+    .use(globalErrorHandler)
 
     .listen(port, () => console.log(messages.serverRunning(port)))
     .on("error", showErrorAndStopApp("unhandledError"));

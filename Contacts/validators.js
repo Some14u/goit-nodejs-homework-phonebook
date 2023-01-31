@@ -28,8 +28,9 @@ function contactValidator(req, _, next) {
 }
 
 /**
- * This stupid special case validator is required by the task rules.
- * It works flawlessly without it, simply throwing an error if any field is missing
+ * This special case validator is required according to task rules.
+ * It works flawlessly without it, because anyway the check will be made
+ * by the following next Joi validation
  */
 function putMissingFieldsValidator(req, _, next) {
   const { name, email, phone } = req.body;
@@ -41,12 +42,15 @@ function putMissingFieldsValidator(req, _, next) {
  * Validator for favorite fields
  * @type {RequestHandler}
  */
-function favoriteValidator(req, _, next) {
+function favoriteValidator({ body }, _, next) {
+  // If user send a simple "true"/"false", it will end up as the first
+  // and the only key in the request body
+  const bodyKeys = Object.keys(body);
+  if (!body.favorite && bodyKeys.length === 1) body.favorite = bodyKeys[0];
   // This check is here because of task requirements.
-  if (!req.body.favorite)
-    throw new MissingFieldsError(messages.missingFavorite);
+  if (!body.favorite) throw new MissingFieldsError(messages.missingFavorite);
   // This basically does the same but with joi builtin error message
-  Contact.validateJoi(req.body, {
+  Contact.validateJoi(body, {
     process: ["favorite"],
     required: ["favorite"],
   });

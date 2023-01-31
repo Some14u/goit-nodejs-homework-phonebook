@@ -2,25 +2,6 @@
 const Joi = require("joi");
 
 /**
- * Creates a valid {@link RequestHandler|router handler} that applies provided
- * validator to specified request data source.
- * @param {string} dataSource - either **params**, **body**, **query** or **headers**.
- * @param {function} validator - a validator function to validate data source.
- * @param {[string]} requiredList - a list of keys, which are required to be present. Default is empty.
- * @returns {RequestHandler} a router handler to be used as middleware
- */
-function createValidatorMiddleware(dataSource, validator, requiredList) {
-  return (req, res, next) => {
-    try {
-      validator(req[dataSource], requiredList);
-      next();
-    } catch (error) {
-      next(error);
-    }
-  };
-}
-
-/**
  * @typedef {Object} JoiValidatorOptions
  * @property {[string]} [process] A list of model fields to validate.
  * Default is all keys that are possible to validate.
@@ -44,7 +25,7 @@ function createValidatorMiddleware(dataSource, validator, requiredList) {
 function createJoiValidator(validators) {
   return (fields, { process, required = [], stripExtra = true }) => {
     if (!process) process = Object.keys(validators);
-    for (const key of Object.keys(fields)) {
+    for (const key of process) {
       // Strip all unwanted extra fields
       if (stripExtra && !process.includes(key)) {
         delete fields[key];
@@ -58,6 +39,5 @@ function createJoiValidator(validators) {
 }
 
 module.exports = {
-  createValidatorMiddleware,
   createJoiValidator,
 };
