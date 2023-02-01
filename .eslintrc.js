@@ -11,5 +11,7 @@ module.exports = {
     ecmaVersion: 12,
     requireConfigFile: false,
   },
-  rules: {},
+  rules: {
+    "no-unused-vars": ["warn", { args: "all", argsIgnorePattern: "^_" }],
+  },
 };
