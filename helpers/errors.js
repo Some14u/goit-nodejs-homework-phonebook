@@ -1,6 +1,7 @@
+/** @typedef {import("express").RequestHandler} RequestHandler */
 const Joi = require("joi");
-const { format } = require("node:util");
-const { messages } = require(".");
+const mongoose = require("mongoose");
+const messages = require("./messages");
 
 /**
  * Wraps each element in array of {@link RequestHandler|router handlers} with
@@ -10,20 +11,31 @@ const { messages } = require(".");
 function wrapWithErrorHandling(routerRequestHandlers) {
   for (const [key, handler] of Object.entries(routerRequestHandlers)) {
     routerRequestHandlers[key] = (req, res, next) =>
-      Promise.resolve(handler(req, res)).catch(next);
+      Promise.resolve(handler(req, res, next)).catch(next);
   }
+}
+
+/**
+ * The main 404 handler
+ * @type {RequestHandler}
+ */
+function globalNotFoundHandler(_, __, next) {
+  next(new NotFoundError());
 }
 
 /**
  * Main error handler. Handles custom types of errors (including Joi validation)
  * and manages correct status codes.
- * @type {import("express").ErrorRequestHandler} */
-function errorHandler(err, _, res, __) {
+ * @type {import("express").ErrorRequestHandler}
+ */
+function globalErrorHandler(err, _, res, __) {
   let status = 500;
-
   if (err instanceof NotFoundError) status = 404;
-  else if (err instanceof MissingFieldsError) status = 400;
+  else if (err instanceof ValidationError) status = 400;
   else if (err instanceof Joi.ValidationError) status = 400;
+  // Technically in mongoose the casting phase is not a part of validation, but for us it's 400 anyway
+  else if (err instanceof mongoose.Error.CastError) status = 400;
+  else if (err instanceof mongoose.Error.ValidationError) status = 400;
   else if (err instanceof ExistError) status = 409;
 
   res.status(status).json({ message: err.message });
@@ -32,15 +44,14 @@ function errorHandler(err, _, res, __) {
 /** Error for adding document with existing name */
 class ExistError extends Error {
   constructor(name) {
-    super(format(messages.exist, name));
+    super(messages.exist(name));
   }
 }
 
-/** Error for missing required parameter */
-class MissingFieldsError extends Error {
-  constructor() {
-    super(messages.missingFields);
-  }
+/** Generig validation error handler */
+class ValidationError extends Error {
+  // Nothing here because it is required only to detect the error type
+  // in globalErrorHanlder
 }
 
 /** Resource not found error */
@@ -50,10 +61,20 @@ class NotFoundError extends Error {
   }
 }
 
+/** Shows error in the console and exits */
+function showErrorAndStopApp(msg) {
+  return (error) => {
+    console.error(messages[msg]?.(error) || error);
+    process.exit(1);
+  };
+}
+
 module.exports = {
   wrapWithErrorHandling,
-  errorHandler,
+  globalNotFoundHandler,
+  globalErrorHandler,
   ExistError,
-  MissingFieldsError,
+  ValidationError,
   NotFoundError,
+  showErrorAndStopApp,
 };
