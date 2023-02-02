@@ -1,4 +1,3 @@
-
 // List of all possible custom messages
 const messages = {
   notFound: "Not found",
@@ -13,6 +12,11 @@ const messages = {
     "Error connecting database. Unable to continue.\n" + error,
   unhandledError: (error) =>
     "Something went wrong. Unable to continue.\n" + error,
+  users: {
+    passwordRequired: "Password is required",
+    emailRequired: "Email is required",
+    emailInUse: "Email in use",
+  },
 };
 
 module.exports = messages;

@@ -4,6 +4,7 @@ const logger = require("morgan");
 const cors = require("cors");
 
 const contactsRouter = require("./Contacts/router");
+const usersRouter = require("./Users/router");
 
 const messages = require("./helpers/messages");
 const errors = require("./helpers/errors");
@@ -28,6 +29,7 @@ function startServer() {
     .use(express.json())
 
     .use("/api/contacts", contactsRouter)
+    .use("/users", usersRouter)
 
     .use(errors.globalNotFoundHandler)
     .use(errors.globalErrorHandler)
