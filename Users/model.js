@@ -5,6 +5,10 @@ Joi.objectId = require("joi-objectid")(Joi);
 const messages = require("../helpers/messages");
 const { createJoiValidator } = require("../helpers/validation");
 
+/**
+ * @typedef {"starter"|"pro"|"business"} subscriptionTypes
+ * @enum {subscriptionTypes}
+ */
 const subscriptionTypes = {
   starter: "starter",
   pro: "pro",
@@ -62,6 +66,6 @@ const userSchema = new mongoose.Schema(
   }
 );
 
-const Contact = mongoose.model("User", userSchema);
+const User = mongoose.model("User", userSchema);
 
-module.exports = Contact;
+module.exports = User;
