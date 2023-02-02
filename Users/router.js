@@ -12,7 +12,6 @@ wrapWithErrorHandling(validators);
 
 router //
   .route("/signup")
-  .post(validators.contactValidator, handlers.addContact);
-
+  .post(validators.credentialsValidator, handlers.signup);
 
 module.exports = router;
