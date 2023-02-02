@@ -20,6 +20,7 @@ const validators = {
     .label("name"),
   email: Joi.string() // email
     .trim()
+    .case("lower")
     .email()
     .label("email"),
   phone: Joi.string() // phone

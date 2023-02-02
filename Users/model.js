@@ -5,6 +5,14 @@ Joi.objectId = require("joi-objectid")(Joi);
 const messages = require("../helpers/messages");
 const { createJoiValidator } = require("../helpers/validation");
 
+const subscriptionTypes = {
+  starter: "starter",
+  pro: "pro",
+  business: "business",
+};
+
+const defaultSubscription = subscriptionTypes.starter;
+
 /** @type {Object.<string, Joi>} */
 const validators = {
   password: Joi.string() // name
@@ -15,9 +23,16 @@ const validators = {
     .label("password"),
   email: Joi.string() // email
     .trim()
+    .case("lower")
     .email()
     .max(100) // This to prevent excessive token size, which contains email as payload
     .label("email"),
+  subscription: Joi.string() // subscription
+    .trim()
+    .case("lower")
+    .valid(...Object.values(subscriptionTypes))
+    .default(defaultSubscription)
+    .label("subscription"),
 };
 
 const userSchema = new mongoose.Schema(
@@ -33,8 +48,8 @@ const userSchema = new mongoose.Schema(
     },
     subscription: {
       type: String,
-      enum: ["starter", "pro", "business"],
-      default: "starter",
+      enum: Object.values(subscriptionTypes),
+      default: defaultSubscription,
     },
     token: {
       type: String,
@@ -42,7 +57,7 @@ const userSchema = new mongoose.Schema(
     },
   },
   {
-    statics: { validateJoi: createJoiValidator(validators) },
+    statics: { validateJoi: createJoiValidator(validators), subscriptionTypes },
     versionKey: false,
   }
 );
