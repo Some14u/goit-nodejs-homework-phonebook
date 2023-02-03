@@ -1,4 +1,5 @@
 const { ExistError, NotFoundError } = require("../helpers/errors");
+const request = require("../requestContext");
 const User = require("./model");
 
 /**
@@ -17,7 +18,7 @@ async function getByEmailOrThrow(email) {
  * (**subscription** and **token** are optional).
  */
 async function addOrThrow(params) {
-  return await User.create(params)
+  return await User.create(params);
 }
 
 /**
@@ -35,7 +36,17 @@ async function updateUserSubscription(id, { subscription }) {
   ).orFail(new NotFoundError());
 }
 
+function getUserId() {
+  return request.context.value;
+}
+
+function setUserId(id) {
+  request.context.value = id;
+}
+
 module.exports = {
   getByEmailOrThrow,
   addOrThrow,
+  getUserId,
+  setUserId,
 };

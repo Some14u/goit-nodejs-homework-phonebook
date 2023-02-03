@@ -1,4 +1,5 @@
-require("dotenv").config();
+const { serverPort: port } = require("./helpers/settings");
+
 const express = require("express");
 const logger = require("morgan");
 const cors = require("cors");
@@ -10,6 +11,7 @@ const messages = require("./helpers/messages");
 const errors = require("./helpers/errors");
 
 const { connectMongoDB } = require("./db/connection");
+const requestContext = require("./requestContext");
 
 connectMongoDB()
   .then(() => console.log(messages.databaseConnected))
@@ -20,13 +22,14 @@ connectMongoDB()
 function startServer() {
   const app = express();
   const formatsLogger = app.get("env") === "development" ? "dev" : "short";
-  const port = process.env.PORT || 3000;
 
   app
     .use(logger(formatsLogger))
     .use(cors())
     .use(express.urlencoded({ extended: false }))
     .use(express.json())
+
+    .use(requestContext.provideHandler()) // Used to store user credentials
 
     .use("/api/contacts", contactsRouter)
     .use("/users", usersRouter)
