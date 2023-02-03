@@ -15,6 +15,7 @@ const subscriptionTypes = {
   business: "business",
 };
 
+/** @type {subscriptionTypes} */
 const defaultSubscription = subscriptionTypes.starter;
 
 /** @type {Object.<string, Joi>} */

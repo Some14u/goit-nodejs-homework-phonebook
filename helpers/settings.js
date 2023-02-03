@@ -1,0 +1,9 @@
+require("dotenv").config();
+
+module.exports = {
+  serverPort: process.env.PORT || 3000,
+  databaseConnectionString: process.env.MONGODB_URL,
+  authentication: {
+    jwtSecret: process.env.JWT_SECRET,
+  }
+}

@@ -13,5 +13,8 @@ wrapWithErrorHandling(validators);
 router //
   .route("/signup")
   .post(validators.credentialsValidator, handlers.signup);
+router //
+  .route("/login")
+  .post(validators.credentialsValidator, handlers.signin);
 
 module.exports = router;

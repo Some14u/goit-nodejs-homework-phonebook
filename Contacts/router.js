@@ -5,10 +5,19 @@ const handlers = require("./controller");
 const validators = require("./validators");
 
 const { wrapWithErrorHandling } = require("../helpers/errors");
+const ContactService = require("./service");
 
 // Modify handlers and validators to make sure they will intercept errors
 wrapWithErrorHandling(handlers);
 wrapWithErrorHandling(validators);
+
+function addService() {
+  return (req) => {
+    req.service = new ContactService("some1");
+  };
+}
+
+router.use(addService());
 
 router //
   .route("/")

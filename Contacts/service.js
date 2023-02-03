@@ -2,7 +2,7 @@ const { ExistError, NotFoundError } = require("../helpers/errors");
 const Contact = require("./model");
 
 /** Returns a list of all contacts in the database */
-async function getAllOrThrow() {
+async function getAll() {
   return await Contact.find().orFail(new NotFoundError());
 }
 
@@ -11,7 +11,7 @@ async function getAllOrThrow() {
  * @param {Number} id  id of contact to be returned
  * @returns {Contact} the contact with provided id
  */
-async function getByIdOrThrow(id) {
+async function getById(id) {
   return await Contact.findById(id).orFail(new NotFoundError());
 }
 
@@ -19,7 +19,7 @@ async function getByIdOrThrow(id) {
  * Removes a contact matching id
  * @param {Number} id id of contact to be removed
  */
-async function removeByIdOrThrow(id) {
+async function removeById(id) {
   await Contact.findByIdAndDelete(id).orFail(new NotFoundError());
 }
 
@@ -28,7 +28,7 @@ async function removeByIdOrThrow(id) {
  * Checks the database for anoter contact with the same name.
  * @param params an object, containing **name**, **email**, and **phone** fields (**favorite** is optional).
  */
-async function addOrThrow(params) {
+async function add(params) {
   const match = await Contact.findOne(Contact.filterByNameQuery(params.name));
   if (match) throw new ExistError(params.name);
   const contact = new Contact(params);
@@ -42,7 +42,7 @@ async function addOrThrow(params) {
  * @param {Number} id id of contact to be updated
  * @param params an object, containing **name**, **email**, and **phone** fields (**favorite** is optional).
  */
-async function updateByIdOrThrow(id, params) {
+async function updateById(id, params) {
   // Checking if we have "name" parameter and if so, then also checking,
   // if there is the same name already in the database(with another id)
   const match = await Contact.findOne(Contact.filterByNameQuery(params.name));
@@ -67,10 +67,10 @@ async function updateStatusContact(id, { favorite }) {
 }
 
 module.exports = {
-  getAllOrThrow,
-  getByIdOrThrow,
-  removeByIdOrThrow,
-  addOrThrow,
-  updateByIdOrThrow,
+  add,
+  getAll,
+  getById,
+  removeById,
+  updateById,
   updateStatusContact,
 };
