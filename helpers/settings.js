@@ -5,5 +5,6 @@ module.exports = {
   databaseConnectionString: process.env.MONGODB_URL,
   authentication: {
     jwtSecret: process.env.JWT_SECRET,
+    jwtLifetime: process.env.JWT_LIFETIME || "1m",
   }
 }
