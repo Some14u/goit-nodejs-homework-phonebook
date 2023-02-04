@@ -5,9 +5,8 @@ const User = require("./model");
 /**
  * Searches a user matching email
  * @param {string} email an email of cuser to be returned
- * @returns {Object} the user
  */
-async function getByEmailOrThrow(email) {
+async function getByEmail(email) {
   return await User.findOne({ email }).orFail(new NotFoundError());
 }
 
@@ -17,36 +16,26 @@ async function getByEmailOrThrow(email) {
  * @param params an object, containing **email** and **password** fields
  * (**subscription** and **token** are optional).
  */
-async function addOrThrow(params) {
+async function add(params) {
   return await User.create(params);
 }
 
 /**
- * Updates existing user subscription value.
- * @param {Number} id id of contact to be updated
- * @param {Object} param
+ * Updates user fields.
+ * @param {Number} email id of contact to be updated
+ * @param {Object} param object with fields and values to update
  * @param {User.subscriptionTypes} param.subscription a new value
- * @returns {Object} the user
  */
-async function updateUserSubscription(id, { subscription }) {
-  return await User.findByIdAndUpdate(
-    id,
-    { subscription },
+async function updateByEmail(email, param) {
+  return await User.findAndUpdate(
+    { email },
+    param,
     { new: true }
   ).orFail(new NotFoundError());
 }
 
-function getUserId() {
-  return request.context.value;
-}
-
-function setUserId(id) {
-  request.context.value = id;
-}
-
 module.exports = {
-  getByEmailOrThrow,
-  addOrThrow,
-  getUserId,
-  setUserId,
+  getByEmail,
+  add,
+  updateByEmail
 };

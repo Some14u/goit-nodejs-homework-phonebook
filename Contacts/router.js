@@ -11,14 +11,6 @@ const ContactService = require("./service");
 wrapWithErrorHandling(handlers);
 wrapWithErrorHandling(validators);
 
-function addService() {
-  return (req) => {
-    req.service = new ContactService("some1");
-  };
-}
-
-router.use(addService());
-
 router //
   .route("/")
   .get(handlers.listContacts)

@@ -1,5 +1,7 @@
 const { ExistError, NotFoundError } = require("../helpers/errors");
 const Contact = require("./model");
+const request = require("../requestContext");
+const messages = require("../helpers/messages");
 
 /** Returns a list of all contacts in the database */
 async function getAll() {
@@ -30,7 +32,7 @@ async function removeById(id) {
  */
 async function add(params) {
   const match = await Contact.findOne(Contact.filterByNameQuery(params.name));
-  if (match) throw new ExistError(params.name);
+  if (match) throw new ExistError(messages.exist(params.name));
   const contact = new Contact(params);
   await contact.save();
   return contact;
@@ -46,7 +48,7 @@ async function updateById(id, params) {
   // Checking if we have "name" parameter and if so, then also checking,
   // if there is the same name already in the database(with another id)
   const match = await Contact.findOne(Contact.filterByNameQuery(params.name));
-  if (match && match.id !== id) throw new ExistError(params.name);
+  if (match && match.id !== id) throw new ExistError(messages.exist(params.name));
   return await Contact.findByIdAndUpdate(id, params, { new: true }).orFail(
     new NotFoundError()
   );

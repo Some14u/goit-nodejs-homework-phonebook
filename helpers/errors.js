@@ -30,12 +30,14 @@ function globalNotFoundHandler(_, __, next) {
  */
 function globalErrorHandler(err, _, res, __) {
   let status = 500;
-  if (err instanceof NotFoundError) status = 404;
-  else if (err instanceof ValidationError) status = 400;
+  // console.log(err)
+  if (err instanceof ValidationError) status = 400;
   else if (err instanceof Joi.ValidationError) status = 400;
   // Technically in mongoose the casting phase is not a part of validation, but for us it's 400 anyway
   else if (err instanceof mongoose.Error.CastError) status = 400;
   else if (err instanceof mongoose.Error.ValidationError) status = 400;
+  else if (err instanceof UnauthorizedError) status = 401;
+  else if (err instanceof NotFoundError) status = 404;
   else if (err instanceof ExistError) status = 409;
 
   res.status(status).json({ message: err.message });
@@ -43,15 +45,20 @@ function globalErrorHandler(err, _, res, __) {
 
 /** Error for adding document with existing name */
 class ExistError extends Error {
-  constructor(name) {
-    super(messages.exist(name));
-  }
+  // Nothing here because it is required only to detect the error type
+  // in globalErrorHanlder
 }
 
 /** Generig validation error handler */
 class ValidationError extends Error {
   // Nothing here because it is required only to detect the error type
   // in globalErrorHanlder
+}
+
+class UnauthorizedError extends Error {
+  constructor(msg) {
+    super(msg || messages.users.notAuthorized);
+  }
 }
 
 /** Resource not found error */
@@ -75,6 +82,7 @@ module.exports = {
   globalErrorHandler,
   ExistError,
   ValidationError,
+  UnauthorizedError,
   NotFoundError,
   showErrorAndStopApp,
 };

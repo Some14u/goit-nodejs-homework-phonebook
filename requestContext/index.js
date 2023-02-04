@@ -19,7 +19,7 @@ exports.provideHandler = function (initialContextValue = {}) {
 
 /**
  * A context, specific to current request. This essentially is a virtual property
- * that is basically an alias to the {@link AsyncLocalStorage} store.
+ * which maps to the {@link AsyncLocalStorage} store.
  */
 exports.context = undefined;
 

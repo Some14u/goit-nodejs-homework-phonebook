@@ -16,6 +16,8 @@ const messages = {
     passwordRequired: "Password is required",
     emailRequired: "Email is required",
     emailInUse: "Email in use",
+    loginError: "Email or password is wrong",
+    notAuthorized: "Not authorized",
   },
 };
 

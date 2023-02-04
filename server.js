@@ -12,6 +12,7 @@ const errors = require("./helpers/errors");
 
 const { connectMongoDB } = require("./db/connection");
 const requestContext = require("./requestContext");
+const authGate = require("./middlewares/auth.middleware");
 
 connectMongoDB()
   .then(() => console.log(messages.databaseConnected))
@@ -31,7 +32,7 @@ function startServer() {
 
     .use(requestContext.provideHandler()) // Used to store user credentials
 
-    .use("/api/contacts", contactsRouter)
+    .use("/api/contacts", authGate, contactsRouter)
     .use("/users", usersRouter)
 
     .use(errors.globalNotFoundHandler)

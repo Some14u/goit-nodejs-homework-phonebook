@@ -5,6 +5,12 @@ Joi.objectId = require("joi-objectid")(Joi);
 const messages = require("../helpers/messages");
 const { createJoiValidator } = require("../helpers/validation");
 
+/**
+ * @typedef {{ name: string, email: string, phone: string, favorite: boolean}} ThisType
+ * @typedef {mongoose.Model<mongoose.FlatRecord<ThisType>, {}, {}, {}, any>} StaticsThisType
+ * @typedef {mongoose.Document<unknown, any, ThisType> & ThisType} MiddlewareThisType
+ */
+
 const patterns = {
   phone: /^([+]?[\s0-9]+)?(\d{3}|[(]?[0-9]+[)])?([-]?[\s]?[0-9])+$/,
   consecutiveSpaces: /\s+/g,
