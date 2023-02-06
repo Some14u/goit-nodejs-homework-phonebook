@@ -1,4 +1,3 @@
-/** @typedef {import("express").RequestHandler} RequestHandler */
 const Joi = require("joi");
 
 /**
@@ -23,9 +22,9 @@ const Joi = require("joi");
  * @returns {validateJoi}
  */
 function createJoiValidator(validators) {
-  return (fields, { process, require = [], stripExtra = true }) => {
-    if (!process) process = Object.keys(validators);
-    for (const key of process) {
+  return (fields, { process, require = [], stripExtra = true } = {}) => {
+    process ??= Object.keys(validators);
+    for (const key of [...Object.keys(fields), ...process]) {
       // Strip all unwanted extra fields
       if (stripExtra && !process.includes(key)) {
         delete fields[key];

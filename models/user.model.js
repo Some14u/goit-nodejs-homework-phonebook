@@ -1,3 +1,10 @@
+/**
+ * @typedef {import("mongoose").InferSchemaType<userSchema>} UserType
+ * @typedef {"starter"|"pro"|"business"} SubscriptionTypes
+ *
+ * @typedef {mongoose.Document<unknown, any, UserType> & UserType} MiddlewareThisType
+ */
+
 const mongoose = require("mongoose");
 const mongoDb = require("mongodb");
 const Joi = require("joi");
@@ -6,16 +13,9 @@ const bcrypt = require("bcrypt");
 
 const messages = require("../helpers/messages");
 const { createJoiValidator } = require("../helpers/validation");
-const { ExistError, NotFoundError } = require("../helpers/errors");
+const { ExistError } = require("../helpers/errors");
 
-/**
- * @typedef {{ password: string, email: string, subscription: string, token: string}} ThisType
- * @typedef {mongoose.Model<mongoose.FlatRecord<ThisType>, {}, {}, {}, any>} StaticsThisType
- * @typedef {mongoose.Document<unknown, any, ThisType> & ThisType} MiddlewareThisType
- *
- * @typedef {"starter"|"pro"|"business"} SubscriptionTypes
- * @enum {SubscriptionTypes}
- */
+/** @enum {SubscriptionTypes} */
 const subscriptionTypes = {
   starter: "starter",
   pro: "pro",
@@ -73,20 +73,6 @@ function preSaveHandler(next) {
   });
 }
 
-/** @this {StaticsThisType} */
-async function getByEmail(email) {
-  return this.findOne({ email }).orFail(new NotFoundError());
-}
-
-/** @this {StaticsThisType} */
-async function updateByEmail(email, properties) {
-  return await this.findOneAndUpdate(
-    { email }, //
-    properties,
-    { new: true }
-  ).orFail(new NotFoundError());
-}
-
 async function comparePassword(password) {
   return await bcrypt.compare(password, this.password);
 }
@@ -95,12 +81,12 @@ const userSchema = new mongoose.Schema(
   {
     password: {
       type: String,
-      required: [true, messages.users.passwordRequired], // Should never happen, as I understand the logic
+      required: [true, messages.users.mongoPasswordRequired], // Should never happen, as I understand the logic
     },
     email: {
       type: String,
       lowercase: true,
-      required: [true, messages.users.emailRequired], // Should never happen, as I understand the logic
+      required: [true, messages.users.mongoEmailRequired], // Should never happen, as I understand the logic
       unique: true,
     },
     subscription: {
@@ -116,8 +102,6 @@ const userSchema = new mongoose.Schema(
   {
     statics: {
       validateJoi: createJoiValidator(validators),
-      getByEmail,
-      updateByEmail,
       SubscriptionTypes: subscriptionTypes,
     },
     methods: { comparePassword },

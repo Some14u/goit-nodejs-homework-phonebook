@@ -1,8 +1,8 @@
 const express = require("express");
 const router = express.Router();
 
-const handlers = require("./controller");
-const validators = require("./validators");
+const handlers = require("../controllers/user.controller");
+const validators = require("../validators/user.validators");
 
 const { wrapWithErrorHandling } = require("../helpers/errors");
 const authGate = require("../middlewares/auth.middleware");
@@ -10,15 +10,28 @@ const authGate = require("../middlewares/auth.middleware");
 // Modify handlers and validators to make sure they will intercept errors
 wrapWithErrorHandling(handlers);
 wrapWithErrorHandling(validators);
+router //
+  .route("/")
+  .patch(
+    authGate,
+    validators.subscriptionValidator,
+    handlers.changeSubscription
+  );
 
 router //
   .route("/signup")
   .post(validators.credentialsValidator, handlers.signup);
+
 router //
   .route("/login")
   .post(validators.credentialsValidator, handlers.signin);
-router
+
+router //
   .route("/logout")
   .get(authGate, handlers.signout);
+
+router //
+  .route("/current")
+  .get(authGate, handlers.getCurrent);
 
 module.exports = router;
