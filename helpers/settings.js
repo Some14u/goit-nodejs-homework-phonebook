@@ -8,4 +8,5 @@ module.exports = {
     jwtLifetime: process.env.JWT_LIFETIME || "1m",
   },
   defaultPageSize: process.env.DEFAULT_PAGE_SIZE || 10,
+  isDev: process.env.NODE_ENV === "development",
 };

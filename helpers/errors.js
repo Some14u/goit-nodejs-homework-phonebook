@@ -2,6 +2,7 @@
 const Joi = require("joi");
 const mongoose = require("mongoose");
 const messages = require("./messages");
+const { isDev } = require("./settings");
 
 /**
  * Wraps each element in given object of {@link RequestHandler|router handlers} with
@@ -31,7 +32,7 @@ function globalNotFoundHandler(_, __, next) {
 function globalErrorHandler(err, _, res, __) {
   let status = 500;
 
-  if (process.env.NODE_ENV === "development") console.log(err);
+  if (isDev) console.log(err);
 
   if (err instanceof ValidationError) status = 400;
   else if (err instanceof Joi.ValidationError) status = 400;
@@ -51,7 +52,7 @@ class ExistError extends Error {
   // in globalErrorHanlder
 }
 
-/** Generig validation error handler */
+/** Generic validation error handler */
 class ValidationError extends Error {
   // Nothing here because it is required only to detect the error type
   // in globalErrorHanlder
@@ -70,10 +71,10 @@ class NotFoundError extends Error {
   }
 }
 
-/** Shows error in the console and exits */
+/** Show error in the console and exit */
 function showErrorAndStopApp(msg) {
   return (error) => {
-    console.error(messages[msg]?.(error) || error);
+    console.error(msg?.(error) || msg || error);
     process.exit(1);
   };
 }
