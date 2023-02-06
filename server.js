@@ -1,4 +1,4 @@
-const { serverPort: port } = require("./helpers/settings");
+const { serverPort: port, isDev } = require("./helpers/settings");
 
 const express = require("express");
 const logger = require("morgan");
@@ -14,14 +14,12 @@ const connectMongoDB = require("./db/connection");
 const instantiateServices = require("./middlewares/services.middleware");
 
 connectMongoDB()
-  .then(() => console.log(messages.databaseConnected))
-  .catch(errors.showErrorAndStopApp("databaseError"))
   .then(startServer)
   .catch(errors.showErrorAndStopApp("unhandledError"));
 
 function startServer() {
   const app = express();
-  const formatsLogger = app.get("env") === "development" ? "dev" : "short";
+  const formatsLogger = isDev ? "dev" : "short";
 
   app
     .use(logger(formatsLogger))
@@ -38,5 +36,5 @@ function startServer() {
     .use(errors.globalErrorHandler)
 
     .listen(port, () => console.log(messages.serverRunning(port)))
-    .on("error", errors.showErrorAndStopApp("unhandledError"));
+    .on("error", errors.showErrorAndStopApp(messages.unhandledError));
 }
