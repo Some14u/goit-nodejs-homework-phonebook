@@ -74,7 +74,7 @@ function queryParamsValidation(req, _, next) {
 
 const validateQueryParams = createJoiValidator({
   page: Joi.number().positive().integer().label("page"),
-  size: Joi.number().positive().integer().label("size"),
+  limit: Joi.number().positive().integer().label("limit"),
   favorite: Joi.boolean().label("favorite"),
 });
 

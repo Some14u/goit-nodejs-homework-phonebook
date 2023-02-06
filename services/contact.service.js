@@ -1,5 +1,5 @@
 /** @typedef {import("../models/contact.model").ContactType} ContactType */
-/** @typedef {{page?: number, size?: number, favorite?: boolean}} GetAllParamsType */
+/** @typedef {{page?: number, limit?: number, favorite?: boolean}} GetAllParamsType */
 const { ExistError, NotFoundError } = require("../helpers/errors");
 const api = require("../models/contact.model");
 const messages = require("../helpers/messages");
@@ -20,20 +20,20 @@ class ContactService {
 
   /**
    * Returns a list of all contacts in the database
-   * @param {GetAllParamsType} params page and size control pagination,
-   * wherethere favorite works like an optional filter.
+   * @param {GetAllParamsType} params **page** and **limit** control pagination,
+   * wherethere **favorite** works like an optional filter.
    * @throws {NotFoundError}
    * @returns {Promise<[ContactType]>}
    */
-  getAll({ page, size, favorite } = {}) {
-    size ??= page && defaultPageSize;
+  getAll({ page, limit, favorite } = {}) {
+    limit ??= page && defaultPageSize;
 
     const query = api.find({ owner: this.owner });
 
     if (typeof favorite === "boolean") query.where({ favorite });
 
-    if (page) query.skip(page * size - size);
-    if (size) query.limit(size);
+    if (page) query.skip(page * limit - limit);
+    if (limit) query.limit(limit);
 
     return query.orFail(new NotFoundError());
   }
