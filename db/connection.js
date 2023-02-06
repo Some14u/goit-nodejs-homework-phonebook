@@ -1,12 +1,10 @@
 const mongoose = require("mongoose");
-const { databaseConnectionString: databaseUrl } = require("../helpers/settings");
+const { databaseConnectionString } = require("../helpers/settings");
 
 async function connectMongoDB() {
   await mongoose //
     .set("strictQuery", false)
-    .connect(databaseUrl);
+    .connect(databaseConnectionString);
 }
 
-module.exports = {
-  connectMongoDB,
-};
+module.exports = connectMongoDB;

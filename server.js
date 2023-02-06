@@ -4,15 +4,14 @@ const express = require("express");
 const logger = require("morgan");
 const cors = require("cors");
 
-const contactsRouter = require("./Contacts/router");
-const usersRouter = require("./Users/router");
+const contactsRouter = require("./routers/contact.router");
+const usersRouter = require("./routers/user.router");
 
 const messages = require("./helpers/messages");
 const errors = require("./helpers/errors");
 
-const { connectMongoDB } = require("./db/connection");
-const requestContext = require("./requestContext");
-const authGate = require("./middlewares/auth.middleware");
+const connectMongoDB = require("./db/connection");
+const instantiateServices = require("./middlewares/services.middleware");
 
 connectMongoDB()
   .then(() => console.log(messages.databaseConnected))
@@ -30,9 +29,9 @@ function startServer() {
     .use(express.urlencoded({ extended: false }))
     .use(express.json())
 
-    .use(requestContext.provideHandler()) // Used to store user credentials
+    .use(instantiateServices)
 
-    .use("/api/contacts", authGate, contactsRouter)
+    .use("/api/contacts", contactsRouter)
     .use("/users", usersRouter)
 
     .use(errors.globalNotFoundHandler)

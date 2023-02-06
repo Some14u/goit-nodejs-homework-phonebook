@@ -1,10 +1,10 @@
-/** @typedef {import("express").RequestHandler} RequestHandler */
+/** @typedef {import("../helpers/types").RequestHandler} RequestHandler */
 const Joi = require("joi");
 const mongoose = require("mongoose");
 const messages = require("./messages");
 
 /**
- * Wraps each element in array of {@link RequestHandler|router handlers} with
+ * Wraps each element in given object of {@link RequestHandler|router handlers} with
  * a wrapper, capable to intercept and throw errors using the **next** parameter.
  * @param {Object.<string, RequestHandler>} routerRequestHandlers
  */
@@ -30,7 +30,9 @@ function globalNotFoundHandler(_, __, next) {
  */
 function globalErrorHandler(err, _, res, __) {
   let status = 500;
-  // console.log(err)
+
+  if (process.env.NODE_ENV === "development") console.log(err);
+
   if (err instanceof ValidationError) status = 400;
   else if (err instanceof Joi.ValidationError) status = 400;
   // Technically in mongoose the casting phase is not a part of validation, but for us it's 400 anyway

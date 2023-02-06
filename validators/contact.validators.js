@@ -1,7 +1,9 @@
-/** @typedef {import("express").RequestHandler} RequestHandler */
-const Contact = require("./model");
+/** @typedef {import("../helpers/types").RequestHandler} RequestHandler */
+const Contact = require("../models/contact.model");
 const messages = require("../helpers/messages");
 const { ValidationError } = require("../helpers/errors");
+const { createJoiValidator } = require("../helpers/validation");
+const Joi = require("joi");
 
 /**
  * Id validator
@@ -47,9 +49,12 @@ function favoriteValidator({ body }, _, next) {
   // If user sends a simple "true"/"false", it will end up as the first
   // and the only key in the request body
   const bodyKeys = Object.keys(body);
-  if (!body.favorite && bodyKeys.length === 1) body.favorite = bodyKeys[0];
+  if (!("favorite" in body) && bodyKeys.length === 1)
+    body.favorite = bodyKeys[0];
   // This check is here because of task requirements.
-  if (!body.favorite) throw new ValidationError(messages.missingFavorite);
+  if (!("favorite" in body)) {
+    throw new ValidationError(messages.contacts.missingFavorite);
+  }
   // This basically does the same but with joi builtin error message
   Contact.validateJoi(body, {
     process: ["favorite"],
@@ -58,9 +63,25 @@ function favoriteValidator({ body }, _, next) {
   next();
 }
 
+/**
+ * Validator for getAll query parameters
+ * @type {RequestHandler}
+ */
+function queryParamsValidation(req, _, next) {
+  validateQueryParams(req.query);
+  next();
+}
+
+const validateQueryParams = createJoiValidator({
+  page: Joi.number().positive().integer().label("page"),
+  size: Joi.number().positive().integer().label("size"),
+  favorite: Joi.boolean().label("favorite"),
+});
+
 module.exports = {
   idValidator,
   contactValidator,
   putMissingFieldsValidator,
   favoriteValidator,
+  queryParamsValidation,
 };

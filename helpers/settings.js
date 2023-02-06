@@ -6,5 +6,6 @@ module.exports = {
   authentication: {
     jwtSecret: process.env.JWT_SECRET,
     jwtLifetime: process.env.JWT_LIFETIME || "1m",
-  }
-}
+  },
+  defaultPageSize: process.env.DEFAULT_PAGE_SIZE || 10,
+};
