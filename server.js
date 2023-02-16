@@ -15,7 +15,7 @@ const instantiateServices = require("./middlewares/services.middleware");
 
 connectMongoDB()
   .then(startServer)
-  .catch(errors.showErrorAndStopApp("unhandledError"));
+  .catch(errors.showErrorAndStopApp(messages.unhandledError));
 
 function startServer() {
   const app = express();

@@ -8,7 +8,7 @@ function connectMongoDB() {
     .set("strictQuery", false)
     .connect(databaseConnectionString)
     .then(() => console.log(messages.databaseConnected))
-    .catch(errors.showErrorAndStopApp("databaseError"));
+    .catch(errors.showErrorAndStopApp(messages.databaseError));
 }
 
 module.exports = connectMongoDB;
