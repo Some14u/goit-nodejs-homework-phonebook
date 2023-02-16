@@ -30,19 +30,29 @@ function globalNotFoundHandler(_, __, next) {
  * @type {import("express").ErrorRequestHandler}
  */
 function globalErrorHandler(err, _, res, __) {
-  let status = 500;
+  let status;
 
   if (isDev) console.log(err);
 
-  if (err instanceof ValidationError) status = 400;
-  else if (err instanceof Joi.ValidationError) status = 400;
-  // Technically in mongoose the casting phase is not a part of validation, but for us it's 400 anyway
-  else if (err instanceof mongoose.Error.CastError) status = 400;
-  else if (err instanceof mongoose.Error.ValidationError) status = 400;
-  else if (err instanceof UnauthorizedError) status = 401;
-  else if (err instanceof NotFoundError) status = 404;
-  else if (err instanceof ExistError) status = 409;
-
+  switch (err.constructor) {
+    case (ValidationError,
+    Joi.ValidationError,
+    mongoose.Error.CastError, // Technically in mongoose the casting phase is not a part of validation, but for us it's 400 anyway
+    mongoose.Error.ValidationError):
+      status = 400;
+      break;
+    case UnauthorizedError:
+      status = 401;
+      break;
+    case NotFoundError:
+      status = 404;
+      break;
+    case ExistError:
+      status = 409;
+      break;
+    default:
+      status = 500;
+  }
   res.status(status).json({ message: err.message });
 }
 
@@ -58,9 +68,13 @@ class ValidationError extends Error {
   // in globalErrorHanlder
 }
 
+/** Represents unauthorized error state */
 class UnauthorizedError extends Error {
-  constructor(msg) {
-    super(msg || messages.users.notAuthorized);
+  /** @param {Error|string|undefined} error Accepts original error or error message string */
+  constructor(error) {
+    const isError = error instanceof Error;
+    super(isError ? messages.users.notAuthorized : error);
+    this.cause = isError && error;
   }
 }
 

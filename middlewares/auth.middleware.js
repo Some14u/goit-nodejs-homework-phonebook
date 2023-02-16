@@ -1,7 +1,7 @@
 /** @typedef {import("../helpers/types").RequestHandler} RequestHandler */
 const jwt = require("jsonwebtoken");
 const { UnauthorizedError } = require("../helpers/errors");
-const { authentication, isDev } = require("../helpers/settings");
+const { authentication } = require("../helpers/settings");
 
 /**
  * This middleware ensures the user is logged in
@@ -10,7 +10,7 @@ const { authentication, isDev } = require("../helpers/settings");
 function authGate(req, _, next) {
   authenticate(req)
     .then(next)
-    .catch((err) => next(new UnauthorizedError(isDev && err)));
+    .catch((err) => next(new UnauthorizedError(err)));
 }
 
 /**
@@ -33,17 +33,17 @@ async function authenticate(req) {
   req.user = credentials;
 }
 
+const bearerIdentifier = "Bearer ";
+
 /**
- * Parses the "Authorization" header
+ * Parses the "Authorization" header and extracts token
  * @param {string} header
  * @throws generic error, should be rethrowed
  */
 function extractToken(header) {
-  if (!header || typeof header !== "string") throw new Error();
-  const parts = header.split(" ");
-  if (parts.length !== 2 || parts[0].toLowerCase() !== "bearer")
-    throw new Error();
-  return parts[1];
+  if (!header) throw new Error();
+  if (!header.startsWith(bearerIdentifier)) throw new Error();
+  return header.slice(bearerIdentifier.length);
 }
 
 /** Asyncrhonous version of jwt.verify, based on promises */
