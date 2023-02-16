@@ -74,7 +74,7 @@ class NotFoundError extends Error {
 /** Show error in the console and exit */
 function showErrorAndStopApp(msg) {
   return (error) => {
-    console.error(msg?.(error) || msg || error);
+    console.error(typeof msg === "function" ? msg(error) : msg || error);
     process.exit(1);
   };
 }
