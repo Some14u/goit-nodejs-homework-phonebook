@@ -34,4 +34,8 @@ router //
   .route("/current")
   .get(authGate, handlers.getCurrent);
 
+router //
+  .route("/avatar")
+  .patch(authGate, handlers.uploadAvatar);
+
 module.exports = router;

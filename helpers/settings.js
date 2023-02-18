@@ -9,8 +9,9 @@ module.exports = {
     jwtLifetime: process.env.JWT_LIFETIME || "1m",
   },
   defaultPageSize: process.env.DEFAULT_PAGE_SIZE || 10,
+  avatarSize: process.env.AVATAR_SIZE || 250,
   files: {
-    publicFolder: process.env.PUBLIC_FOLDER,
-    tempFolder: process.env.TEMP_FOLDER,
+    publicFolder: process.env.PUBLIC_FOLDER || "public",
+    tempFolder: process.env.TEMP_FOLDER || "temp",
   },
 };
