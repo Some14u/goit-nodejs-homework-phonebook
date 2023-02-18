@@ -52,6 +52,7 @@ async function getCurrent(req, res) {
   res.json({
     email: user.email,
     subscription: user.subscription,
+    avatar: user.avatarURL,
   });
 }
 
