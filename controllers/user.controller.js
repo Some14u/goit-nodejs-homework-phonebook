@@ -17,11 +17,8 @@ async function signin(req, res) {
   if (!(await user.comparePassword(credentials.password))) {
     throw new UnauthorizedError(messages.users.loginError);
   }
-  const payload = {
-    id: user._id,
-    email: user.email,
-    subscription: user.subscription,
-  };
+
+  const payload = filterObj(user, [["_id", "id"], "email", "subscription"]);
 
   const token = jwt.sign(payload, settings.authentication.jwtSecret, {
     expiresIn: settings.authentication.jwtLifetime,
@@ -29,10 +26,7 @@ async function signin(req, res) {
   await req.services.user.updateById(user.id, { token });
   res.json({
     token,
-    user: {
-      email: user.email,
-      subscription: user.subscription,
-    },
+    user: filterObj(user, ["email", "subscription", ["avatarURL", "avatar"]]),
   });
 }
 
@@ -49,11 +43,7 @@ async function signout(req, res) {
 /** @type {RequestHandler} */
 async function getCurrent(req, res) {
   const user = await req.services.user.getById(req.user.id);
-  res.json({
-    email: user.email,
-    subscription: user.subscription,
-    avatar: user.avatarURL,
-  });
+  res.json(filterObj(user, ["email", "subscription", ["avatarURL", "avatar"]]));
 }
 
 /** @type {RequestHandler} */
@@ -63,11 +53,30 @@ async function changeSubscription(req, res) {
   const user = await req.services.user.updateById(id, { subscription });
   req.user.subscription = subscription;
   res.json({
-    user: {
-      email: user.email,
-      subscription: user.subscription,
-    },
+    user: filterObj(user, ["email", "subscription", ["avatarURL", "avatar"]]),
   });
+}
+
+/** @type {RequestHandler} */
+async function updateAvatar(req, res) {
+  const id = req.user.id;
+  const { subscription } = req.body;
+  const user = await req.services.user.updateById(id, { subscription });
+  req.user.subscription = subscription;
+  res.json({
+    user: filterObj(user, ["email", "subscription", ["avatarURL", "avatar"]]),
+  });
+}
+
+/**
+ * Filters object by the list of allowed keys
+ * @param {any} obj - an object to filter
+ * @param {Array.<string|string[]>} keyList - an array of keys. Items can be strings denoting key names. They can also be pairs like "orignalKeyName destinationKeyName" or [originalKeyName, destinationKeyName]. For example "_id id" or ["_id", "id"].
+ */
+function filterObj(obj, keyList) {
+  return keyList
+    .map((key) => (Array.isArray(key) ? key : key.split(" ")))
+    .reduce((res, key) => ({ ...res, [key.at(-1)]: obj[key[0]] }), {});
 }
 
 module.exports = {
@@ -76,4 +85,5 @@ module.exports = {
   signout,
   getCurrent,
   changeSubscription,
+  updateAvatar,
 };
