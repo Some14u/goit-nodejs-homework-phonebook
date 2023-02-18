@@ -13,5 +13,12 @@ module.exports = {
   },
   rules: {
     "no-unused-vars": ["warn", { args: "all", argsIgnorePattern: "^_" }],
+    "no-warning-comments": [
+      "warn",
+      {
+        terms: ["todo", "fixme"],
+        location: "start",
+      },
+    ],
   },
 };

@@ -1,5 +1,5 @@
 /**
- * @typedef {import("mongoose").InferSchemaType<userSchema>} UserType
+ * @typedef {import("mongoose").InferSchemaType<typeof userSchema>} UserType
  * @typedef {"starter"|"pro"|"business"} SubscriptionTypes
  *
  * @typedef {mongoose.Document<unknown, any, UserType> & UserType} MiddlewareThisType
@@ -9,7 +9,8 @@ const mongoose = require("mongoose");
 const mongoDb = require("mongodb");
 const Joi = require("joi");
 Joi.objectId = require("joi-objectid")(Joi);
-const bcrypt = require("bcrypt");
+const passwordCrypt = require("../helpers/passwordCrypt");
+const avatarProvider = require("../helpers/avatarProvider");
 
 const messages = require("../helpers/messages");
 const { createJoiValidator } = require("../helpers/validation");
@@ -64,17 +65,17 @@ function interceptErrors(err, _, next) {
  * @type {mongoose.PreSaveMiddlewareFunction}
  * @this {MiddlewareThisType}
  */
-function preSaveHandler(next) {
-  if (!this.isModified("password")) next();
-  return bcrypt.hash(this.password, 8, (err, hash) => {
-    if (err) return next(err);
-    this.password = hash;
-    next();
-  });
+async function preSaveHandler() {
+  if (!this.isModified("password")) return;
+  this.password = await passwordCrypt.hash(this.password);
 }
 
-async function comparePassword(password) {
-  return await bcrypt.compare(password, this.password);
+/**
+ * Compares given password with current user password in the model
+ * @param {string} password a password to comare
+ */
+function comparePassword(password) {
+  return passwordCrypt.compare(password, this.password);
 }
 
 const userSchema = new mongoose.Schema(
@@ -97,6 +98,12 @@ const userSchema = new mongoose.Schema(
     token: {
       type: String,
       default: null,
+    },
+    avatarURL: {
+      type: String,
+      default: function ({ email }) {
+        return avatarProvider.getUrlByEmail(email);
+      },
     },
   },
   {

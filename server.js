@@ -1,4 +1,4 @@
-const { serverPort: port, isDev } = require("./helpers/settings");
+const settings = require("./helpers/settings");
 
 const express = require("express");
 const logger = require("morgan");
@@ -19,13 +19,15 @@ connectMongoDB()
 
 function startServer() {
   const app = express();
-  const formatsLogger = isDev ? "dev" : "short";
+  const formatsLogger = settings.isDev ? "dev" : "short";
 
   app
     .use(logger(formatsLogger))
     .use(cors())
     .use(express.urlencoded({ extended: false }))
     .use(express.json())
+
+    .use(express.static(settings.files.publicFolder))
 
     .use(instantiateServices)
 
@@ -35,6 +37,8 @@ function startServer() {
     .use(errors.globalNotFoundHandler)
     .use(errors.globalErrorHandler)
 
-    .listen(port, () => console.log(messages.serverRunning(port)))
+    .listen(settings.serverPort, () =>
+      console.log(messages.serverRunning(settings.serverPort))
+    )
     .on("error", errors.showErrorAndStopApp(messages.unhandledError));
 }

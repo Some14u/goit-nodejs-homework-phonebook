@@ -18,7 +18,7 @@ function authGate(req, _, next) {
  * @type {RequestHandler}
  */
 async function authenticate(req) {
-  // Extracting the token. Can fail on his stage.
+  // Extracting the token. Can fail on this stage.
   const token = extractToken(req.get("Authorization"));
   // Verifying token. Can also fail with specific jwt error.
   const credentials = await jwtVerifyAsync(token, authentication.jwtSecret);
@@ -45,6 +45,8 @@ function extractToken(header) {
   if (!header.startsWith(bearerIdentifier)) throw new Error();
   return header.slice(bearerIdentifier.length);
 }
+
+// TODO: Сконвертировать в util.promisify или проверить, может вообще она промис возвращает без колбека
 
 /** Asyncrhonous version of jwt.verify, based on promises */
 function jwtVerifyAsync(token, secret) {
