@@ -6,6 +6,7 @@ const validators = require("../validators/user.validators");
 
 const { wrapWithErrorHandling } = require("../helpers/errors");
 const authGate = require("../middlewares/auth.middleware");
+const handleAvatarUpload = require("../middlewares/uploadAvatar.middleware");
 
 // Modify handlers and validators to make sure they will intercept errors
 wrapWithErrorHandling(handlers);
@@ -34,8 +35,13 @@ router //
   .route("/current")
   .get(authGate, handlers.getCurrent);
 
+// TODO: add authgate back
 router //
   .route("/avatar")
-  .patch(authGate, handlers.uploadAvatar);
+  .patch(
+    // authGate,
+    handleAvatarUpload,
+    handlers.updateAvatar
+  );
 
 module.exports = router;
