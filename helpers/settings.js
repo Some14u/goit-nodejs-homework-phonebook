@@ -1,4 +1,5 @@
 require("dotenv").config();
+const bytes = require("bytes");
 
 module.exports = {
   isDev: process.env.NODE_ENV === "development",
@@ -9,9 +10,13 @@ module.exports = {
     jwtLifetime: process.env.JWT_LIFETIME || "1m",
   },
   defaultPageSize: process.env.DEFAULT_PAGE_SIZE || 10,
-  avatarSize: process.env.AVATAR_SIZE || 250,
   files: {
     publicFolder: process.env.PUBLIC_FOLDER || "public",
     tempFolder: process.env.TEMP_FOLDER || "temp",
+  },
+  avatar: {
+    size: process.env.AVATAR_SIZE || 250,
+    supportedFormats: JSON.parse(process.env.AVATAR_FORMATS) || ["jpg"],
+    maxFileSize: bytes(process.env.AVATAR_MAX_FILE_SIZE) || 3 * 1024 * 1024,
   },
 };

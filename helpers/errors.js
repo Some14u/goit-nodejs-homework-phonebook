@@ -35,10 +35,10 @@ function globalErrorHandler(err, _, res, __) {
   if (isDev) console.log(err);
 
   switch (err.constructor) {
-    case (ValidationError,
-    Joi.ValidationError,
-    mongoose.Error.CastError, // Technically in mongoose the casting phase is not a part of validation, but for us it's 400 anyway
-    mongoose.Error.ValidationError):
+    case ValidationError:
+    case Joi.ValidationError:
+    case mongoose.Error.CastError: // Technically in mongoose the casting phase is not a part of validation, but for us it's 400 anyway
+    case mongoose.Error.ValidationError:
       status = 400;
       break;
     case UnauthorizedError:
@@ -49,6 +49,9 @@ function globalErrorHandler(err, _, res, __) {
       break;
     case ExistError:
       status = 409;
+      break;
+    case UnsupportedMediaError:
+      status = 415;
       break;
     default:
       status = 500;
@@ -64,6 +67,12 @@ class ExistError extends Error {
 
 /** Generic validation error handler */
 class ValidationError extends Error {
+  // Nothing here because it is required only to detect the error type
+  // in globalErrorHanlder
+}
+
+/** A handler for all types of media discrepancy */
+class UnsupportedMediaError extends Error {
   // Nothing here because it is required only to detect the error type
   // in globalErrorHanlder
 }
@@ -99,6 +108,7 @@ module.exports = {
   globalErrorHandler,
   ExistError,
   ValidationError,
+  UnsupportedMediaError,
   UnauthorizedError,
   NotFoundError,
   showErrorAndStopApp,

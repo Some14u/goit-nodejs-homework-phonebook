@@ -14,7 +14,13 @@ const messages = {
     emailInUse: "Email in use",
     loginError: "Email or password is wrong",
     notAuthorized: "Not authorized",
+    unsupportedAvatarFormat: (formats) =>
+      `Unsupported file type. Use one of the following formats: ${formats.join(
+        ", "
+      )}`,
   },
+  unsupportedFormat: (actualFormat) =>
+    `"Unsupported request payload format. Expected "multipart/form-data", got "${actualFormat}"`,
   serverRunning: (port) => "Server is running. Use our API on port " + port,
   databaseConnected: "Database connection successful",
   databaseError: (error) =>

@@ -18,7 +18,12 @@ async function signin(req, res) {
     throw new UnauthorizedError(messages.users.loginError);
   }
 
-  const payload = filterObj(user, [["_id", "id"], "email", "subscription"]);
+  const payload = filterObj(user, [
+    ["_id", "id"],
+    "email",
+    "subscription",
+    "avatarURL",
+  ]);
 
   const token = jwt.sign(payload, settings.authentication.jwtSecret, {
     expiresIn: settings.authentication.jwtLifetime,
@@ -26,7 +31,7 @@ async function signin(req, res) {
   await req.services.user.updateById(user.id, { token });
   res.json({
     token,
-    user: filterObj(user, ["email", "subscription", ["avatarURL", "avatar"]]),
+    user: filterObj(user, ["email", "subscription", "avatarURL"]),
   });
 }
 
@@ -43,7 +48,7 @@ async function signout(req, res) {
 /** @type {RequestHandler} */
 async function getCurrent(req, res) {
   const user = await req.services.user.getById(req.user.id);
-  res.json(filterObj(user, ["email", "subscription", ["avatarURL", "avatar"]]));
+  res.json(filterObj(user, ["email", "subscription", "avatarURL"]));
 }
 
 /** @type {RequestHandler} */
@@ -53,19 +58,22 @@ async function changeSubscription(req, res) {
   const user = await req.services.user.updateById(id, { subscription });
   req.user.subscription = subscription;
   res.json({
-    user: filterObj(user, ["email", "subscription", ["avatarURL", "avatar"]]),
+    user: filterObj(user, ["email", "subscription", "avatarURL"]),
   });
 }
 
+// TODO: fix this
 /** @type {RequestHandler} */
 async function updateAvatar(req, res) {
-  const id = req.user.id;
-  const { subscription } = req.body;
-  const user = await req.services.user.updateById(id, { subscription });
-  req.user.subscription = subscription;
-  res.json({
-    user: filterObj(user, ["email", "subscription", ["avatarURL", "avatar"]]),
-  });
+  // const id = req.user.id;
+  console.log("updateAvatar:::", req.file);
+  // const { avatar } = req.filebody;
+  // const user = await req.services.user.updateById(id, { avatarURL: avatar });
+  // req.user.avatarURL = avatar;
+  // res.json({
+  //   avatarURL: user.avatarURL,
+  // });
+  res.end();
 }
 
 /**

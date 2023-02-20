@@ -5,7 +5,7 @@
  *    user: import("../services/user.service")
  * }} ServicesType
  *
- * @typedef {{id: String, email: String, subscription: String}} TokenCredentialsType
+ * @typedef {{id: String, email: String, subscription: String, avatarURL: String}} TokenCredentialsType
  *
  * @typedef {{services?: ServicesType} & {user?: TokenCredentialsType}} RequestContextType
  *
