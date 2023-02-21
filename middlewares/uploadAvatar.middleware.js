@@ -12,7 +12,7 @@ const { supportedFormats, maxFileSize } = settings.avatar;
 const storage = multer.diskStorage({
   destination: path.resolve(process.cwd(), settings.files.tempFolder),
   filename: (_, file, cb) => {
-    cb(null, crypto.randomUUID() + "." + getExtension(file.originalname));
+    cb(null, crypto.randomUUID() + path.extname(file.originalname));
   },
 });
 
@@ -26,7 +26,8 @@ const avatarHandler = multer({
   },
   // This validates incoming file format
   fileFilter: (_, file, cb) => {
-    const extension = getExtension(file.originalname);
+    const extension = path.extname(file.originalname);
+    console.log(extension);
     if (supportedFormats.includes(extension)) {
       cb(null, true);
       return;
@@ -62,11 +63,6 @@ function fixErrorMessages(err) {
   if (err instanceof multer.MulterError && err.code === "LIMIT_FILE_SIZE") {
     err.message += `. The maximum size allowed is ${maxFileSize} bytes.`;
   }
-}
-
-/** Extracts a file extension */
-function getExtension(filename) {
-  return filename.split(".").at(-1).toLowerCase();
 }
 
 module.exports = handleAvatarUpload;

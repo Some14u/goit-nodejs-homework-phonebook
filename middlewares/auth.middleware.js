@@ -1,7 +1,9 @@
 /** @typedef {import("../helpers/types").RequestHandler} RequestHandler */
 const jwt = require("jsonwebtoken");
+const util = require("util");
 const { UnauthorizedError } = require("../helpers/errors");
 const { authentication } = require("../helpers/settings");
+const { filterObj } = require("../helpers/tools");
 
 /**
  * This middleware ensures the user is logged in
@@ -12,6 +14,9 @@ function authGate(req, _, next) {
     .then(next)
     .catch((err) => next(new UnauthorizedError(err)));
 }
+
+/** Asyncrhonous version of jwt.verify, based on promises */
+const jwtVerifyAsync = util.promisify(jwt.verify);
 
 /**
  * Asyncrhonous authentication
@@ -30,7 +35,7 @@ async function authenticate(req) {
   // And now it seems safe to proceed further
 
   // Store credentials in local request context for future usage
-  req.user = credentials;
+  req.user = filterObj(user, ["_id id", "email", "subscription", "avatarURL"]);
 }
 
 const bearerIdentifier = "Bearer ";
@@ -44,18 +49,6 @@ function extractToken(header) {
   if (!header) throw new Error();
   if (!header.startsWith(bearerIdentifier)) throw new Error();
   return header.slice(bearerIdentifier.length);
-}
-
-// TODO: Сконвертировать в util.promisify или проверить, может вообще она промис возвращает без колбека
-
-/** Asyncrhonous version of jwt.verify, based on promises */
-function jwtVerifyAsync(token, secret) {
-  return new Promise((resolve, reject) => {
-    jwt.verify(token, secret, (err, credentials) => {
-      if (err) return reject(err);
-      resolve(credentials);
-    });
-  });
 }
 
 module.exports = authGate;

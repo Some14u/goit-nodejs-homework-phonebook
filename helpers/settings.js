@@ -15,8 +15,9 @@ module.exports = {
     tempFolder: process.env.TEMP_FOLDER || "temp",
   },
   avatar: {
-    size: process.env.AVATAR_SIZE || 250,
-    supportedFormats: JSON.parse(process.env.AVATAR_FORMATS) || ["jpg"],
+    folder: process.env.AVATAR_FOLDER || "avatars",
+    size: Number(process.env.AVATAR_SIZE) || 250,
+    supportedFormats: JSON.parse(process.env.AVATAR_FORMATS) || [".jpg"],
     maxFileSize: bytes(process.env.AVATAR_MAX_FILE_SIZE) || 3 * 1024 * 1024,
   },
 };
