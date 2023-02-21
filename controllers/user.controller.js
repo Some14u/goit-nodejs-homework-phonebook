@@ -1,8 +1,13 @@
 /** @typedef {import("../helpers/types").RequestHandler} RequestHandler */
 const jwt = require("jsonwebtoken");
-const { UnauthorizedError } = require("../helpers/errors");
-const messages = require("../helpers/messages");
+const fs = require("fs/promises");
+const { URL } = require("url");
+const path = require("path");
 const settings = require("../helpers/settings");
+const messages = require("../helpers/messages");
+const { resizeAndSave } = require("../helpers/avatarProvider");
+const { UnauthorizedError } = require("../helpers/errors");
+const { filterObj } = require("../helpers/tools");
 
 /** @type {RequestHandler} */
 async function signup(req, res) {
@@ -62,29 +67,47 @@ async function changeSubscription(req, res) {
   });
 }
 
-// TODO: fix this
-/** @type {RequestHandler} */
+/**
+ * Handles new avatar uploading.
+ * @type {RequestHandler}
+ */
 async function updateAvatar(req, res) {
-  // const id = req.user.id;
-  console.log("updateAvatar:::", req.file);
-  // const { avatar } = req.filebody;
-  // const user = await req.services.user.updateById(id, { avatarURL: avatar });
-  // req.user.avatarURL = avatar;
-  // res.json({
-  //   avatarURL: user.avatarURL,
-  // });
-  res.end();
+  const id = req.user.id;
+
+  // Setup source and destination paths
+  const source = req.file.path;
+  const relative = path.join(settings.avatar.folder, req.file.filename);
+  const avatarURL = new URL("file:" + relative).pathname;
+  const destination = path.resolve(settings.files.publicFolder, relative);
+
+  // Process the image, move it to the public folder and wipe out from tmp
+  await resizeAndSave(source, destination, settings.avatar.size);
+  await fs.unlink(source);
+  await deleteOldAvatar(req.user.avatarURL);
+
+  await req.services.user.updateById(id, { avatarURL });
+  req.user.avatarURL = avatarURL;
+
+  res.json({ avatarURL });
 }
 
-/**
- * Filters object by the list of allowed keys
- * @param {any} obj - an object to filter
- * @param {Array.<string|string[]>} keyList - an array of keys. Items can be strings denoting key names. They can also be pairs like "orignalKeyName destinationKeyName" or [originalKeyName, destinationKeyName]. For example "_id id" or ["_id", "id"].
- */
-function filterObj(obj, keyList) {
-  return keyList
-    .map((key) => (Array.isArray(key) ? key : key.split(" ")))
-    .reduce((res, key) => ({ ...res, [key.at(-1)]: obj[key[0]] }), {});
+async function deleteOldAvatar(avatarPath) {
+  if (!avatarPath) return;
+  avatarPath = new URL(avatarPath, "file:");
+
+  // This is the case for default avatar url provided by gravatar
+  if (avatarPath.protocol !== "file:") return;
+
+  // Build a path to the old file
+  avatarPath = path.join(
+    path.resolve(settings.files.publicFolder),
+    avatarPath.pathname
+  );
+
+  // "Silent" delete. Doesn't throw anything if there is no file
+  try {
+    await fs.unlink(avatarPath, () => {});
+  } catch {}
 }
 
 module.exports = {

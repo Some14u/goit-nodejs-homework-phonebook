@@ -1,6 +1,6 @@
 const bcrypt = require("bcrypt");
 
-// TODO: description required
+/** Obfuscates the password using bcrypt module */
 function hash(password) {
   return bcrypt.hash(password, 8);
 }

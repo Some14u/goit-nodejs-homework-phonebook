@@ -35,13 +35,8 @@ router //
   .route("/current")
   .get(authGate, handlers.getCurrent);
 
-// TODO: add authgate back
 router //
   .route("/avatar")
-  .patch(
-    // authGate,
-    handleAvatarUpload,
-    handlers.updateAvatar
-  );
+  .patch(authGate, handleAvatarUpload, handlers.updateAvatar);
 
 module.exports = router;
