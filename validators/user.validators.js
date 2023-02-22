@@ -24,6 +24,7 @@ function subscriptionValidator({ body }, _, next) {
   });
   next();
 }
+
 module.exports = {
   credentialsValidator,
   subscriptionValidator,
