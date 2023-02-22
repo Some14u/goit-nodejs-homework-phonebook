@@ -9,11 +9,11 @@ const mongoose = require("mongoose");
 const mongoDb = require("mongodb");
 const Joi = require("joi");
 Joi.objectId = require("joi-objectid")(Joi);
-const passwordCrypt = require("../helpers/passwordCrypt");
-const avatar = require("../helpers/avatar");
+const passwordRepo = require("../repositories/password.repo");
+const avatar = require("../repositories/avatar.repo");
 
 const messages = require("../helpers/messages");
-const { createJoiValidator } = require("../helpers/validation");
+const { createJoiValidator } = require("../repositories/validation.repo");
 const { ExistError } = require("../helpers/errors");
 
 /** @enum {SubscriptionTypes} */
@@ -67,7 +67,7 @@ function interceptErrors(err, _, next) {
  */
 async function preSaveHandler() {
   if (!this.isModified("password")) return;
-  this.password = await passwordCrypt.hash(this.password);
+  this.password = await passwordRepo.hash(this.password);
 }
 
 /**
@@ -75,7 +75,7 @@ async function preSaveHandler() {
  * @param {string} password a password to comare
  */
 function comparePassword(password) {
-  return passwordCrypt.compare(password, this.password);
+  return passwordRepo.compare(password, this.password);
 }
 
 const userSchema = new mongoose.Schema(

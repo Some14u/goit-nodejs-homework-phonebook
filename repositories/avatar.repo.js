@@ -1,8 +1,8 @@
 const fs = require("fs/promises");
 const path = require("path");
 const gravatar = require("gravatar");
-const settings = require("./settings");
 const jimp = require("jimp");
+const settings = require("../helpers/settings");
 
 /** This takes the email as parameter and generates the url to default avatar image */
 function getUrlByEmail(email) {
