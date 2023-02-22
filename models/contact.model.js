@@ -4,7 +4,7 @@ const Joi = require("joi");
 Joi.objectId = require("joi-objectid")(Joi);
 
 const messages = require("../helpers/messages");
-const { createJoiValidator } = require("../helpers/validation");
+const { createJoiValidator } = require("../repositories/validation.repo");
 
 const patterns = {
   phone: /^([+]?[\s0-9]+)?(\d{3}|[(]?[0-9]+[)])?([-]?[\s]?[0-9])+$/,

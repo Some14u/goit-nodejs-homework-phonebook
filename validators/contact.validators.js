@@ -2,7 +2,7 @@
 const Contact = require("../models/contact.model");
 const messages = require("../helpers/messages");
 const { ValidationError } = require("../helpers/errors");
-const { createJoiValidator } = require("../helpers/validation");
+const { createJoiValidator } = require("../repositories/validation.repo");
 const Joi = require("joi");
 
 /**

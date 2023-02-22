@@ -1,16 +1,13 @@
 /** @typedef {import("../models/user.model").UserType} UserType */
-const { NotFoundError, UnauthorizedError } = require("../helpers/errors");
-const api = require("../models/user.model");
 const { URL } = require("url");
 const path = require("path");
+const api = require("../models/user.model");
+const { NotFoundError, UnauthorizedError } = require("../helpers/errors");
 const settings = require("../helpers/settings");
-const avatar = require("../helpers/avatar");
 const messages = require("../helpers/messages");
 const { filterObj } = require("../helpers/tools");
-const util = require("util");
-const jwt = require("jsonwebtoken");
-
-const signAsync = util.promisify(jwt.sign); // Promisified version of jwt.sign
+const avatar = require("../repositories/avatar.repo");
+const jwt = require("../repositories/jwt.repo");
 
 class UserService {
   /**
@@ -69,7 +66,7 @@ class UserService {
       "avatarURL",
     ]);
 
-    const token = await signAsync(payload, settings.authentication.jwtSecret, {
+    const token = await jwt.sign(payload, settings.authentication.jwtSecret, {
       expiresIn: settings.authentication.jwtLifetime,
     });
 
