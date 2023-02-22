@@ -10,7 +10,7 @@ const mongoDb = require("mongodb");
 const Joi = require("joi");
 Joi.objectId = require("joi-objectid")(Joi);
 const passwordCrypt = require("../helpers/passwordCrypt");
-const avatarProvider = require("../helpers/avatarProvider");
+const avatar = require("../helpers/avatar");
 
 const messages = require("../helpers/messages");
 const { createJoiValidator } = require("../helpers/validation");
@@ -102,7 +102,7 @@ const userSchema = new mongoose.Schema(
     avatarURL: {
       type: String,
       default: function ({ email }) {
-        return avatarProvider.getUrlByEmail(email);
+        return avatar.getUrlByEmail(email);
       },
     },
   },
