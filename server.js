@@ -27,7 +27,7 @@ function startServer() {
     .use(express.urlencoded({ extended: false }))
     .use(express.json())
 
-    .use(express.static(settings.files.publicFolder))
+    .use(express.static(settings.folders.public))
 
     .use(instantiateServices)
 

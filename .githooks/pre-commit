@@ -1,0 +1,13 @@
+#!/bin/sh
+
+# Load environment variables from .env file
+source "$(pwd)/.env"
+
+# Check if CLEAN_ON_COMMIT is set to true
+if [ "$CLEAN_ON_COMMIT" = true ]; then
+  # Run npm run clean to clear public and tmp folders
+  npm run clean
+fi
+
+# Exit with a zero status code to allow the commit to continue
+exit 0

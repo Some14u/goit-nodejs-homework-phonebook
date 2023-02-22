@@ -1,11 +1,7 @@
 /** @typedef {import("../helpers/types").RequestHandler} RequestHandler */
 const jwt = require("jsonwebtoken");
-const fs = require("fs/promises");
-const { URL } = require("url");
-const path = require("path");
 const settings = require("../helpers/settings");
 const messages = require("../helpers/messages");
-const { resizeAndSave } = require("../helpers/avatarProvider");
 const { UnauthorizedError } = require("../helpers/errors");
 const { filterObj } = require("../helpers/tools");
 
@@ -67,47 +63,12 @@ async function changeSubscription(req, res) {
   });
 }
 
-/**
- * Handles new avatar uploading.
- * @type {RequestHandler}
- */
+/** @type {RequestHandler} */
 async function updateAvatar(req, res) {
   const id = req.user.id;
-
-  // Setup source and destination paths
-  const source = req.file.path;
-  const relative = path.join(settings.avatar.folder, req.file.filename);
-  const avatarURL = new URL("file:" + relative).pathname;
-  const destination = path.resolve(settings.files.publicFolder, relative);
-
-  // Process the image, move it to the public folder and wipe out from tmp
-  await resizeAndSave(source, destination, settings.avatar.size);
-  await fs.unlink(source);
-  await deleteOldAvatar(req.user.avatarURL);
-
-  await req.services.user.updateById(id, { avatarURL });
+  const avatarURL = await req.services.user.updateAvatarById(id, req.file.path);
   req.user.avatarURL = avatarURL;
-
   res.json({ avatarURL });
-}
-
-async function deleteOldAvatar(avatarPath) {
-  if (!avatarPath) return;
-  avatarPath = new URL(avatarPath, "file:");
-
-  // This is the case for default avatar url provided by gravatar
-  if (avatarPath.protocol !== "file:") return;
-
-  // Build a path to the old file
-  avatarPath = path.join(
-    path.resolve(settings.files.publicFolder),
-    avatarPath.pathname
-  );
-
-  // "Silent" delete. Doesn't throw anything if there is no file
-  try {
-    await fs.unlink(avatarPath, () => {});
-  } catch {}
 }
 
 module.exports = {

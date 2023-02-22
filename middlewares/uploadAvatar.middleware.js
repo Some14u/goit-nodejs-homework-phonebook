@@ -10,7 +10,7 @@ const { supportedFormats, maxFileSize } = settings.avatar;
 
 // Configuring multer storage
 const storage = multer.diskStorage({
-  destination: path.resolve(process.cwd(), settings.files.tempFolder),
+  destination: path.resolve(process.cwd(), settings.folders.temp),
   filename: (_, file, cb) => {
     cb(null, crypto.randomUUID() + path.extname(file.originalname));
   },
@@ -27,7 +27,6 @@ const avatarHandler = multer({
   // This validates incoming file format
   fileFilter: (_, file, cb) => {
     const extension = path.extname(file.originalname);
-    console.log(extension);
     if (supportedFormats.includes(extension)) {
       cb(null, true);
       return;

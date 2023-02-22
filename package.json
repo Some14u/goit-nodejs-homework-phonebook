@@ -7,7 +7,7 @@
     "start:dev": "cross-env NODE_ENV=development nodemon ./server.js",
     "lint": "eslint **/*.js",
     "lint:fix": "eslint --fix **/*.js",
-    "clean": "rm -rf $PUBLIC_FOLDER* $TEMP_FOLDER*"
+    "clean": "node helpers/clean"
   },
   "dependencies": {
     "bcrypt": "^5.1.0",
