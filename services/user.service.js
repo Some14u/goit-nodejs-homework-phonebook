@@ -1,10 +1,16 @@
 /** @typedef {import("../models/user.model").UserType} UserType */
-const { NotFoundError } = require("../helpers/errors");
+const { NotFoundError, UnauthorizedError } = require("../helpers/errors");
 const api = require("../models/user.model");
 const { URL } = require("url");
 const path = require("path");
 const settings = require("../helpers/settings");
 const avatar = require("../helpers/avatar");
+const messages = require("../helpers/messages");
+const { filterObj } = require("../helpers/tools");
+const util = require("util");
+const jwt = require("jsonwebtoken");
+
+const signAsync = util.promisify(jwt.sign); // Promisified version of jwt.sign
 
 class UserService {
   /**
@@ -41,6 +47,37 @@ class UserService {
   }
 
   /**
+   * Logins user using credentials
+   *
+   * Returns user with new token assigned
+   * @param {string} email user email
+   * @param {string} password user password
+   * @return {Promise<UserType>}
+   */
+  async login(email, password) {
+    let user = await this.getByEmail(email);
+
+    const passwordsAreEqual = await user.comparePassword(password);
+    if (!passwordsAreEqual) {
+      throw new UnauthorizedError(messages.users.loginError);
+    }
+
+    const payload = filterObj(user, [
+      ["_id", "id"],
+      "email",
+      "subscription",
+      "avatarURL",
+    ]);
+
+    const token = await signAsync(payload, settings.authentication.jwtSecret, {
+      expiresIn: settings.authentication.jwtLifetime,
+    });
+
+    user = await this.updateById(user.id, { token });
+    return user;
+  }
+
+  /**
    * Updates user fields
    * @param {ObjectId} id id of the user to be updated
    * @param param object with fields and values to update
@@ -71,6 +108,7 @@ class UserService {
     await avatar.resizeAndMove(source, destination, settings.avatar.size);
 
     // Update the user avatarURL with new value
+    // I'm using api expicitly because i need the old avatar url
     const { avatarURL: oldAvatarURL } = await api
       .findByIdAndUpdate(id, { avatarURL })
       .orFail(new NotFoundError());
