@@ -10,7 +10,7 @@ async function signup(req, res) {
 /** @type {RequestHandler} */
 async function signin(req, res) {
   const { email, password } = req.body;
-  const user = await req.services.user.login(email, password);
+  const user = await req.services.user.signin(email, password);
   res.json({
     token: user.token,
     user: filterObj(user, ["email", "subscription", "avatarURL"]),
@@ -41,7 +41,6 @@ async function changeSubscription(req, res) {
   });
 }
 
-/** @type {RequestHandler} */
 async function updateAvatar(req, res) {
   const id = req.user.id;
   const avatarURL = await req.services.user.updateAvatarById(id, req.file.path);

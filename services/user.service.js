@@ -44,33 +44,32 @@ class UserService {
   }
 
   /**
-   * Logins user using credentials
+   * Sign in user using credentials
    *
    * Returns user with new token assigned
    * @param {string} email user email
    * @param {string} password user password
    * @return {Promise<UserType>}
    */
-  async login(email, password) {
-    let user = await this.getByEmail(email);
+  async signin(email, password) {
+    let user;
+    user = await api
+      .findOne({ email })
+      .orFail(new UnauthorizedError(messages.users.signinError));
 
     const passwordsAreEqual = await user.comparePassword(password);
     if (!passwordsAreEqual) {
-      throw new UnauthorizedError(messages.users.loginError);
+      throw new UnauthorizedError(messages.users.signinError);
     }
 
-    const payload = filterObj(user, [
-      ["_id", "id"],
-      "email",
-      "subscription",
-      "avatarURL",
-    ]);
+    const payload = filterObj(user, [["_id", "id"], "email", "subscription"]);
 
     const token = await jwt.sign(payload, settings.authentication.jwtSecret, {
       expiresIn: settings.authentication.jwtLifetime,
     });
 
     user = await this.updateById(user.id, { token });
+
     return user;
   }
 

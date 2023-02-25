@@ -1,10 +1,11 @@
 module.exports = {
   parser: "@babel/eslint-parser",
-
+  plugins: ["jest"],
   env: {
     commonjs: true,
     es2021: true,
     node: true,
+    "jest/globals": true,
   },
   extends: ["standard", "prettier"],
   parserOptions: {
