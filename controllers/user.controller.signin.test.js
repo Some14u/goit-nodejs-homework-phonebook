@@ -1,12 +1,15 @@
 const supertest = require("supertest");
 const server = require("../server");
 const { MongoMemoryServer } = require("mongodb-memory-server");
-
-const { signin } = require("./user.controller");
 const db = require("../db/db");
+const { signin } = require("./user.controller");
 const settings = require("../helpers/settings");
-const { default: mongoose } = require("mongoose");
 const User = require("../models/user.model");
+const messages = require("../helpers/messages");
+const { filterObj } = require("../helpers/tools");
+const jwt = require("../repositories/jwt.repo");
+
+settings.isDev = true;
 
 describe("signin unit test", () => {
   let mockRequest;
@@ -76,44 +79,87 @@ describe("signin unit test", () => {
 });
 
 describe("signin integrational test", () => {
-  const user = {
+  const credentials = {
     email: "test@email.com",
     password: "testPassword",
-    token: "sometoken",
   };
   let memoryServer;
-
-  async function initInMemoryServer() {
-    memoryServer = await MongoMemoryServer.create();
-  }
-
-  async function stopInMemoryServer() {
-    memoryServer.stop();
-  }
+  let user;
 
   beforeAll(async () => {
-    await initInMemoryServer();
-    await db.connect(memoryServer.getUri);
+    memoryServer = await MongoMemoryServer.create();
+    db.instance = await db.connect(memoryServer.getUri());
   });
 
   afterAll(async () => {
     if (!memoryServer) return;
     await db.disconnect();
-    await stopInMemoryServer();
+    await memoryServer.stop();
   });
 
   beforeEach(async () => {
     await db.dropCollections();
+
+    // Creating test user (and it's POJO)
+    user = (await User.create(credentials)).toJSON();
+    user._id = user._id.toString();
   });
 
-  it("should respond with status 200", async () => {
-    User.create(user);
-    // const response = await supertest(server.instance)
-    // .post("/users/login")
-    // .send({ email: user.email, password: user.password });
-    // expect(response.statusCode).toEqual(200);
-    const user = await User.findOne();
+  it("should respond with status 200 if credentials are ok", async () => {
+    const response = await supertest(server.instance)
+      .post("/users/login")
+      .send({ email: credentials.email, password: credentials.password });
 
-    expect(user).toBe();
+    expect(response.statusCode).toEqual(200);
+  });
+
+  it("should return token and user, having email and subscription, if credentials are ok", async () => {
+    const response = await supertest(server.instance)
+      .post("/users/login")
+      .send({ email: credentials.email, password: credentials.password });
+
+    expect(response.body).toBeInstanceOf(Object);
+    expect(response.body).toHaveProperty("token");
+    expect(response.body).toHaveProperty("user.email", credentials.email);
+    expect(response.body).toHaveProperty(
+      "user.subscription",
+      User.SubscriptionTypes.starter
+    );
+  });
+
+  it("should respond with status 401 and error message, if password is not ok", async () => {
+    const response = await supertest(server.instance)
+      .post("/users/login")
+      .send({ email: credentials.email, password: "wrongPassword" });
+    expect(response.statusCode).toEqual(401);
+    expect(response.body).toEqual({ message: messages.users.signinError });
+  });
+
+  it("should respond with status 401 and error message, if email is not ok", async () => {
+    const response = await supertest(server.instance)
+      .post("/users/login")
+      .send({ email: "unknown@email.com", password: credentials.password });
+    expect(response.statusCode).toEqual(401);
+    expect(response.body).toEqual({ message: messages.users.signinError });
+  });
+
+  it("should return valid JWT with expected data", async () => {
+    const payload = filterObj(user, [["_id", "id"], "email", "subscription"]);
+
+    const response = await supertest(server.instance)
+      .post("/users/login")
+      .send({ email: credentials.email, password: credentials.password });
+
+    let decodedPayload;
+    try {
+      decodedPayload = await jwt.verify(
+        response.body.token,
+        settings.authentication.jwtSecret
+      );
+    } catch (error) {
+      decodedPayload = error;
+    }
+
+    expect(decodedPayload).toEqual(expect.objectContaining(payload));
   });
 });
