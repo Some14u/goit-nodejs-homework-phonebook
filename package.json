@@ -8,7 +8,8 @@
     "lint": "eslint **/*.js",
     "lint:fix": "eslint --fix **/*.js",
     "clean": "node helpers/clean",
-    "test": "jest"
+    "test": "jest",
+    "preinstall": "ln -f .githooks/pre-commit .git/hooks"
   },
   "dependencies": {
     "bcrypt": "^5.1.0",
