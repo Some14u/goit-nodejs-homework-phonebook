@@ -1,6 +1,5 @@
 /** @typedef {import("../helpers/types").RequestHandler} RequestHandler */
 const { UnauthorizedError } = require("../helpers/errors");
-const { authentication } = require("../helpers/settings");
 const { filterObj } = require("../helpers/tools");
 const jwt = require("../repositories/jwt.repo");
 
@@ -22,7 +21,7 @@ async function authenticate(req) {
   // Extracting the token. Can fail on this stage.
   const token = extractToken(req.get("Authorization"));
   // Verifying token. Can also fail with specific jwt error.
-  const credentials = await jwt.verify(token, authentication.jwtSecret);
+  const credentials = await jwt.verify(token);
   // Searching for user by credentials. Throwing error on fail.
   const user = await req.services.user.getById(credentials.id);
   // The last failsafe — checking if this user actually has the token

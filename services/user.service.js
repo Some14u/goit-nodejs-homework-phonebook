@@ -64,9 +64,10 @@ class UserService {
 
     const payload = filterObj(user, [["_id", "id"], "email", "subscription"]);
 
-    const token = await jwt.sign(payload, settings.authentication.jwtSecret, {
-      expiresIn: settings.authentication.jwtLifetime,
-    });
+    const token = await jwt.sign(
+      payload,
+      settings.authentication.jwt.lifeTime.auth
+    );
 
     user = await this.updateById(user.id, { token });
 
