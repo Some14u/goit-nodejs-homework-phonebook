@@ -152,10 +152,7 @@ describe("signin integrational test", () => {
 
     let decodedPayload;
     try {
-      decodedPayload = await jwt.verify(
-        response.body.token,
-        settings.authentication.jwtSecret
-      );
+      decodedPayload = await jwt.verify(response.body.token);
     } catch (error) {
       decodedPayload = error;
     }

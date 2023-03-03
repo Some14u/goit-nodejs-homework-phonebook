@@ -53,7 +53,10 @@ const validators = {
  * @type {mongoose.ErrorHandlingMiddlewareFunction}
  */
 function interceptErrors(err, _, next) {
-  if (err instanceof mongoDb.MongoServerError && err.code === 11000) {
+  if (
+    err.constructor.name === mongoDb.MongoServerError.name &&
+    err.code === 11000
+  ) {
     next(new ExistError(messages.users.emailInUse));
   } else {
     next();
@@ -61,7 +64,7 @@ function interceptErrors(err, _, next) {
 }
 
 /**
- * Middleware that takes care of asyncronously password obfuscation.
+ * Middleware that takes care of asyncronously obfuscation.
  * @type {mongoose.PreSaveMiddlewareFunction}
  * @this {MiddlewareThisType}
  */
