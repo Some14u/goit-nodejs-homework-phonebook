@@ -2,9 +2,13 @@ require("dotenv").config();
 const bytes = require("bytes");
 
 const avatarsFolder = process.env.AVATAR_FOLDER || "avatars";
+const appName = process.env.npm_package_name;
+const domain = process.env.DOMAIN;
 
 module.exports = {
+  appName,
   isDev: process.env.NODE_ENV === "development",
+  domain,
   serverPort: process.env.PORT || 3000,
   databaseConnectionString: process.env.MONGODB_URL,
   authentication: {
@@ -15,6 +19,9 @@ module.exports = {
         emailConfirmation: process.env.JWT_EMAIL_LIFETIME || "1h",
       },
     },
+    emailConfirmationFrom: `"${appName}" <${
+      process.env.EMAIL_CONFIRMATION_FROM || "email.confirmation"
+    }@${domain}>`,
   },
   defaultPageSize: process.env.DEFAULT_PAGE_SIZE || 10,
   folders: {

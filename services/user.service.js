@@ -2,12 +2,18 @@
 const { URL } = require("url");
 const path = require("path");
 const api = require("../models/user.model");
-const { NotFoundError, UnauthorizedError } = require("../helpers/errors");
+const {
+  NotFoundError,
+  UnauthorizedError,
+  ValidationError,
+} = require("../helpers/errors");
 const settings = require("../helpers/settings");
 const messages = require("../helpers/messages");
 const { filterObj } = require("../helpers/tools");
 const avatar = require("../repositories/avatar.repo");
 const jwt = require("../repositories/jwt.repo");
+const mailer = require("../repositories/mailer.repo");
+const emailService = require("./email.service");
 
 class UserService {
   /**
@@ -43,6 +49,16 @@ class UserService {
     return api.create(params);
   }
 
+  // TODO description
+  async signup(user) {
+    const verificationToken = jwt.sign(
+      { email: user.email },
+      settings.authentication.jwt.lifeTime.emailConfirmation
+    );
+    await this.add({ ...user, verificationToken });
+    await emailService.sendConfirmationEmail(user.email, verificationToken);
+  }
+
   /**
    * Sign in user using credentials
    *
@@ -52,8 +68,7 @@ class UserService {
    * @return {Promise<UserType>}
    */
   async signin(email, password) {
-    let user;
-    user = await api
+    let user = await api
       .findOne({ email })
       .orFail(new UnauthorizedError(messages.users.signinError));
 
@@ -114,6 +129,34 @@ class UserService {
     await avatar.deleteByUrl(oldAvatarURL);
 
     return avatarURL;
+  }
+
+  async activateAccount(token) {
+    const errMsg = messages.users.emailVerification;
+
+    // Check the token. It may expire and throw an error
+    const payload = await jwt.verify(token).catch((err) => {
+      throw new ValidationError(err.wrongToken);
+    });
+
+    // Get the user. Throws NotFoundError
+    let user = await this.getByEmail(payload.email);
+
+    // Throw if user has already been verified
+    if (user.verify) throw new ValidationError(errMsg.beenPassed);
+
+    // Check provided and user tokens equality
+    const tokensAreEqual = await user.compareVerificationToken(token);
+
+    // Throw if tokens not equal
+    if (!tokensAreEqual) throw new ValidationError(errMsg.wrongToken);
+
+    // We have passed email verification. Now it's safe to activate the user
+    // TODO add login check
+    user = await this.updateById(user.id, {
+      verificationToken: null,
+      verify: true,
+    });
   }
 }
 

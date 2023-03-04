@@ -25,6 +25,12 @@ async function signout(req, res) {
 }
 
 /** @type {RequestHandler} */
+function verifyEmail(req, res) {
+  const { verificationToken } = req.params;
+  req.services.user.activateAccount(verificationToken);
+}
+
+/** @type {RequestHandler} */
 async function getCurrent(req, res) {
   const user = await req.services.user.getById(req.user.id);
   res.json(filterObj(user, ["email", "subscription", "avatarURL"]));
@@ -52,6 +58,7 @@ module.exports = {
   signup,
   signin,
   signout,
+  verifyEmail,
   getCurrent,
   changeSubscription,
   updateAvatar,

@@ -24,6 +24,10 @@ router //
   .post(validators.credentialsValidator, handlers.signup);
 
 router //
+  .route("/verify/:verificationToken")
+  .get(handlers.verifyEmail);
+
+router //
   .route("/login")
   .post(validators.credentialsValidator, handlers.signin);
 

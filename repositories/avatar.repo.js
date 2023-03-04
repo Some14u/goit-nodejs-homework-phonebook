@@ -53,9 +53,7 @@ async function deleteByUrl(url) {
   );
 
   // "Silent" delete. Doesn't throw anything if there is no file
-  try {
-    await fs.unlink(avatarPath);
-  } catch {}
+  await fs.unlink(avatarPath).catch(() => {});
 }
 
 module.exports = {
