@@ -12,10 +12,17 @@ const messages = {
     emailInUse: "Email in use",
     signinError: "Email or password is wrong",
     notAuthorized: "Not authorized",
+    noVerifyToken: "Verify token is required",
     unsupportedAvatarFormat: (formats) =>
       `Unsupported file type. Use one of the following formats: ${formats.join(
         ", "
       )}`,
+    emailVerification: {
+      beenPassed: "Verification has already been passed",
+      wrongToken: "This token not exist or has been expired",
+      sentEmailPreview: (url) => "An email has been sent. Preview url: " + url,
+      subject: "ContactsApi email verification",
+    },
   },
   server: {
     isRunning: (port) => "Server is running. Use our API on port " + port,

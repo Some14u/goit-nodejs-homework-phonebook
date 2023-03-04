@@ -19,6 +19,7 @@
     "dotenv": "^16.0.3",
     "express": "4.17.1",
     "gravatar": "^1.8.2",
+    "handlebars": "^4.7.7",
     "jimp": "^0.22.4",
     "joi": "^17.7.0",
     "joi-objectid": "^4.0.2",
@@ -27,7 +28,9 @@
     "mongodb-memory-server": "^8.11.5",
     "mongoose": "^6.9.0",
     "morgan": "1.10.0",
-    "multer": "^1.4.5-lts.1"
+    "multer": "^1.4.5-lts.1",
+    "nodemailer": "^6.9.1",
+    "nodemailer-html-to-text": "^3.2.0"
   },
   "devDependencies": {
     "@babel/core": "^7.20.12",

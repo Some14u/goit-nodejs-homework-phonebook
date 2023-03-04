@@ -9,7 +9,7 @@ const mongoose = require("mongoose");
 const mongoDb = require("mongodb");
 const Joi = require("joi");
 Joi.objectId = require("joi-objectid")(Joi);
-const passwordRepo = require("../repositories/password.repo");
+const crypt = require("../repositories/hash.repo");
 const avatar = require("../repositories/avatar.repo");
 
 const messages = require("../helpers/messages");
@@ -64,13 +64,20 @@ function interceptErrors(err, _, next) {
 }
 
 /**
- * Middleware that takes care of asyncronously obfuscation.
+ * Middleware that takes care of asyncronously obfuscation
+ *
+ * Currently I do it for password and email verification token which is basically a jwt.
+ * It is necessary to reobfuscate jwt (which is already hashed itself) for security reasons.
  * @type {mongoose.PreSaveMiddlewareFunction}
  * @this {MiddlewareThisType}
  */
 async function preSaveHandler() {
-  if (!this.isModified("password")) return;
-  this.password = await passwordRepo.hash(this.password);
+  if (this.isModified("password")) {
+    this.password = await crypt.apply(this.password);
+  }
+  if (this.isModified("verificationToken")) {
+    this.verificationToken = await crypt.apply(this.verificationToken);
+  }
 }
 
 /**
@@ -78,7 +85,15 @@ async function preSaveHandler() {
  * @param {string} password a password to comare
  */
 function comparePassword(password) {
-  return passwordRepo.compare(password, this.password);
+  return crypt.compare(password, this.password);
+}
+
+/**
+ * Compares given email verification token with current user token in the model
+ * @param {string} jwt a password to comare
+ */
+function compareVerificationToken(token) {
+  return crypt.compare(token, this.verificationToken);
 }
 
 const userSchema = new mongoose.Schema(
@@ -108,13 +123,24 @@ const userSchema = new mongoose.Schema(
         return avatar.getUrlByEmail(email);
       },
     },
+    verify: {
+      type: Boolean,
+      default: false,
+    },
+    verificationToken: {
+      type: String,
+      required: [true, messages.users.noVerifyToken],
+    },
   },
   {
     statics: {
       validateJoi: createJoiValidator(validators),
       SubscriptionTypes: subscriptionTypes,
     },
-    methods: { comparePassword },
+    methods: {
+      comparePassword,
+      compareVerificationToken,
+    },
     versionKey: false,
   }
 );
