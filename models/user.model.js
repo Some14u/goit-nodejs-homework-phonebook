@@ -75,7 +75,7 @@ async function preSaveHandler() {
   if (this.isModified("password")) {
     this.password = await crypt.apply(this.password);
   }
-  if (this.isModified("verificationToken")) {
+  if (this.isModified("verificationToken") && this.verificationToken !== null) {
     this.verificationToken = await crypt.apply(this.verificationToken);
   }
 }

@@ -150,12 +150,9 @@ describe("signin integrational test", () => {
       .post("/users/login")
       .send({ email: credentials.email, password: credentials.password });
 
-    let decodedPayload;
-    try {
-      decodedPayload = await jwt.verify(response.body.token);
-    } catch (error) {
-      decodedPayload = error;
-    }
+    const decodedPayload = await jwt
+      .verify(response.body.token)
+      .catch((error) => error);
 
     expect(decodedPayload).toEqual(expect.objectContaining(payload));
   });

@@ -1,10 +1,14 @@
 /** @typedef {import("../helpers/types").RequestHandler} RequestHandler */
+const messages = require("../helpers/messages");
 const { filterObj } = require("../helpers/tools");
 
 /** @type {RequestHandler} */
 async function signup(req, res) {
-  const { email, subscription } = await req.services.user.add(req.body);
-  res.status(201).json({ user: { email, subscription } });
+  const { email, subscription } = await req.services.user.signup(req.body);
+  res.status(201).json({
+    user: { email, subscription },
+    message: messages.emailVerification.info(req.body.email),
+  });
 }
 
 /** @type {RequestHandler} */
@@ -25,9 +29,17 @@ async function signout(req, res) {
 }
 
 /** @type {RequestHandler} */
-function verifyEmail(req, res) {
+async function activateAccount(req, res) {
   const { verificationToken } = req.params;
-  req.services.user.activateAccount(verificationToken);
+  await req.services.user.activateAccount(verificationToken);
+  res.json({ message: messages.emailVerification.successful });
+}
+
+/** @type {RequestHandler} */
+async function requestEmailVerificationToken(req, res) {
+  const { email } = req.body;
+  await req.services.user.reverifyEmail(email);
+  res.json({ message: messages.emailVerification.sent });
 }
 
 /** @type {RequestHandler} */
@@ -58,7 +70,8 @@ module.exports = {
   signup,
   signin,
   signout,
-  verifyEmail,
+  activateAccount,
+  requestEmailVerificationToken,
   getCurrent,
   changeSubscription,
   updateAvatar,

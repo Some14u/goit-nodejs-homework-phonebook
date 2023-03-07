@@ -12,6 +12,7 @@
     "preinstall": "ln -f .githooks/pre-commit .git/hooks"
   },
   "dependencies": {
+    "@sendgrid/mail": "^7.7.0",
     "bcrypt": "^5.1.0",
     "bytes": "^3.1.2",
     "cors": "2.8.5",
