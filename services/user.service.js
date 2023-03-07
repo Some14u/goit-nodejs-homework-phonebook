@@ -11,9 +11,8 @@ const settings = require("../helpers/settings");
 const messages = require("../helpers/messages");
 const { filterObj } = require("../helpers/tools");
 const avatar = require("../repositories/avatar.repo");
-const jwt = require("../repositories/jwt.repo");
-const mailer = require("../repositories/mailer.repo");
 const emailService = require("./email.service");
+const jwt = require("../repositories/jwt.repo");
 
 class UserService {
   /**
@@ -39,28 +38,54 @@ class UserService {
   /**
    * Adds a new user using data, provided in **params**.
    * Checks the database for anoter user with the same name.
+   * Sends an email verification request to user's email.
    * @param params an object, containing **email** and **password** fields
    * (**subscription** and **token** are optional).
    * @returns {Promise<UserType>}
    * @throws {ExistError} Note, that this error is actually thrown by interceptErrors middleware
    * in [User model module](../models/user.model.js).
    */
-  add(params) {
-    return api.create(params);
+  async signup(params) {
+    const token = await emailService.generateVerificationToken(params.email);
+    const user = await api.create({ ...params, verificationToken: token });
+    await emailService.sendVerificationEmail(params.email, token);
+    return user;
   }
 
-  // TODO description
-  async signup(user) {
-    const verificationToken = jwt.sign(
-      { email: user.email },
-      settings.authentication.jwt.lifeTime.emailConfirmation
-    );
-    await this.add({ ...user, verificationToken });
-    await emailService.sendConfirmationEmail(user.email, verificationToken);
+  /**
+   * Generates a new email verification token and resends request to user's email.
+   *
+   * Checks the database if user exists, and makes sure it hasn't been yet verified.
+   *
+   * It is important to always generate fresh token because the old token may had
+   * been expired.
+   * @param {string} email
+   * @returns {Promise<UserType>}
+   * @throws {NotFoundError|ValidationError}
+   */
+  async reverifyEmail(email) {
+    const user = await this.getByEmail(email);
+
+    // Throw if user has already been verified
+    if (user.verify) {
+      throw new ValidationError(messages.emailVerification.beenPassed);
+    }
+    // Generate new token
+    const token = await emailService.generateVerificationToken(email);
+
+    // Update user
+    user.verificationToken = token;
+    user.save();
+
+    // Resend verification email with new token
+    await emailService.sendVerificationEmail(email, token);
+
+    return user;
   }
 
   /**
    * Sign in user using credentials
+   * Checks if user has already verified their email.
    *
    * Returns user with new token assigned
    * @param {string} email user email
@@ -75,6 +100,11 @@ class UserService {
     const passwordsAreEqual = await user.comparePassword(password);
     if (!passwordsAreEqual) {
       throw new UnauthorizedError(messages.users.signinError);
+    }
+
+    // Check if user has passed email verification
+    if (!user.verify) {
+      throw new UnauthorizedError(messages.emailVerification.notVerifiedEmail);
     }
 
     const payload = filterObj(user, [["_id", "id"], "email", "subscription"]);
@@ -131,12 +161,22 @@ class UserService {
     return avatarURL;
   }
 
+  /**
+   * Activates user account after checking various conditions.
+   *
+   * The main purpose of this function is to validate the email
+   * verification token. The same exact token supposed to be stored
+   * in the database during the email verification phase of registration.
+   * @param {string} token an email comfirmation token. This is a jwt token containing email of user to be activated.
+   * @throws {NotFoundError|ValidationError}
+   * @returns {Promise<UserType>}
+   */
   async activateAccount(token) {
-    const errMsg = messages.users.emailVerification;
+    const errMsg = messages.emailVerification;
 
     // Check the token. It may expire and throw an error
-    const payload = await jwt.verify(token).catch((err) => {
-      throw new ValidationError(err.wrongToken);
+    const payload = await jwt.verify(token).catch(() => {
+      throw new ValidationError(errMsg.wrongToken);
     });
 
     // Get the user. Throws NotFoundError
@@ -152,11 +192,11 @@ class UserService {
     if (!tokensAreEqual) throw new ValidationError(errMsg.wrongToken);
 
     // We have passed email verification. Now it's safe to activate the user
-    // TODO add login check
     user = await this.updateById(user.id, {
       verificationToken: null,
       verify: true,
     });
+    return user;
   }
 }
 

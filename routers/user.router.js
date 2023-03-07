@@ -11,6 +11,7 @@ const handleAvatarUpload = require("../middlewares/uploadAvatar.middleware");
 // Modify handlers and validators to make sure they will intercept errors
 wrapWithErrorHandling(handlers);
 wrapWithErrorHandling(validators);
+
 router //
   .route("/")
   .patch(
@@ -25,7 +26,11 @@ router //
 
 router //
   .route("/verify/:verificationToken")
-  .get(handlers.verifyEmail);
+  .get(handlers.activateAccount);
+
+router //
+  .route("/verify")
+  .post(validators.emailValidator, handlers.requestEmailVerificationToken);
 
 router //
   .route("/login")

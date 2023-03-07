@@ -32,7 +32,7 @@ function globalNotFoundHandler(_, __, next) {
 function globalErrorHandler(err, _, res, __) {
   let status;
 
-  if (isDev) console.log(err);
+  if (isDev) console.error(err);
 
   switch (err.constructor) {
     case ValidationError:

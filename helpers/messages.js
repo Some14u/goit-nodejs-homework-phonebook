@@ -17,12 +17,17 @@ const messages = {
       `Unsupported file type. Use one of the following formats: ${formats.join(
         ", "
       )}`,
-    emailVerification: {
-      beenPassed: "Verification has already been passed",
-      wrongToken: "This token not exist or has been expired",
-      sentEmailPreview: (url) => "An email has been sent. Preview url: " + url,
-      subject: "ContactsApi email verification",
-    },
+  },
+  emailVerification: {
+    successful: "Verification successful",
+    info: (email) =>
+      `An email verification procedure is requred in order to complete the registration.\nCheck ${email} for our verification request.`,
+    sent: "Verification email sent",
+    beenPassed: "Verification has already been passed",
+    wrongToken: "This token not exist or has been expired",
+    sentEmailPreview: (url) => "Preview url: " + url,
+    subject: (appName) => `${appName} email verification`,
+    notVerifiedEmail: `User with these credentials has not verified his email yet.\nYou can resend email verification request using POST /users/verify with "email" key in the body.`,
   },
   server: {
     isRunning: (port) => "Server is running. Use our API on port " + port,
@@ -39,6 +44,7 @@ const messages = {
     "Something went wrong. Unable to continue.\n" + error,
   notFound: "Not found",
   missingFields: "Missing fields",
+  mailerMessage: (mailer) => `Using ${mailer} engine to send emails`,
 };
 
 module.exports = messages;

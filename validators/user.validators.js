@@ -14,6 +14,18 @@ function credentialsValidator(req, _, next) {
 }
 
 /**
+ * Validator for requestEmailVerificationToken
+ * @type {RequestHandler}
+ */
+function emailValidator(req, _, next) {
+  User.validateJoi(req.body, {
+    process: ["email"],
+    require: ["email"],
+  });
+  next();
+}
+
+/**
  * Validator for user subscription changing endpoint
  * @type {RequestHandler}
  */
@@ -27,5 +39,6 @@ function subscriptionValidator({ body }, _, next) {
 
 module.exports = {
   credentialsValidator,
+  emailValidator,
   subscriptionValidator,
 };
