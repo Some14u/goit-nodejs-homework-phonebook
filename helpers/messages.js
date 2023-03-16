@@ -9,6 +9,7 @@ const messages = {
   users: {
     mongoPasswordRequired: "Password is required",
     mongoEmailRequired: "Email is required",
+    avatarRequired: '"avatar" is required',
     emailInUse: "Email in use",
     signinError: "Email or password is wrong",
     notAuthorized: "Not authorized",
