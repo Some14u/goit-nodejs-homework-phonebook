@@ -3,7 +3,7 @@ const path = require("path");
 const crypto = require("crypto");
 
 const settings = require("../helpers/settings");
-const { UnsupportedMediaError } = require("../helpers/errors");
+const { UnsupportedMediaError, ValidationError } = require("../helpers/errors");
 const messages = require("../helpers/messages");
 
 const { supportedFormats, maxFileSize } = settings.avatar;
@@ -22,7 +22,6 @@ const avatarHandler = multer({
   limits: {
     fileSize: maxFileSize,
     files: 1, // Only one file allowed
-    fields: 0, // No additional fields allowed
   },
   // This validates incoming file format
   fileFilter: (_, file, cb) => {
@@ -52,7 +51,8 @@ function handleAvatarUpload(req, res, next) {
 
   // Call multer handler
   avatarHandler(req, res, (err) => {
-    fixErrorMessages(err);
+    fixErrorMessages(err, req);
+    err ??= !req.file && new ValidationError(messages.users.avatarRequired);
     next(err);
   });
 }
