@@ -53,7 +53,11 @@ class EmailService {
 
   /** Compiles hbs template for emails */
   #loadTemplate(name) {
-    const filePath = path.join(process.cwd(), "views/emails", name + ".hbs");
+    const filePath = path.join(
+      process.cwd(),
+      "app/views/emails",
+      name + ".hbs"
+    );
     const data = fs.readFileSync(filePath, "utf8");
     return handlebars.compile(data);
   }

@@ -82,6 +82,8 @@ describe("signin integrational test", () => {
   const credentials = {
     email: "test@email.com",
     password: "testPassword",
+    verify: true,
+    verificationToken: "token", // Mock for token, I don't actually check it
   };
   let memoryServer;
   let user;

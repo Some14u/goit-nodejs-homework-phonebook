@@ -1,0 +1,11 @@
+version: '3'
+services:
+  app:
+    image: some14u/hw06-email:1.0
+    container_name: hw06-email_by_Some14u
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+    env_file:
+      - .env

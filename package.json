@@ -3,13 +3,13 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "start": "cross-env NODE_ENV=production node ./app.js",
-    "start:dev": "cross-env NODE_ENV=development nodemon ./app.js",
+    "start": "cross-env NODE_ENV=production node ./app/app.js",
+    "start:dev": "cross-env NODE_ENV=development nodemon ./app/app.js",
     "lint": "eslint **/*.js",
     "lint:fix": "eslint --fix **/*.js",
-    "clean": "node helpers/clean",
+    "clean": "node app/helpers/clean",
     "test": "jest",
-    "preinstall": "ln -f .githooks/pre-commit .git/hooks"
+    "preinstall": "ln -f .githooks/pre-commit .git/hooks || exit 0"
   },
   "dependencies": {
     "@sendgrid/mail": "^7.7.0",
